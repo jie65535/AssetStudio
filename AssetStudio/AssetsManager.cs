@@ -39,7 +39,12 @@ namespace AssetStudio
             }
             if (classIDTypes.Contains(ClassIDType.Sprite))
             {
-                filteredAssetTypesList.Add(ClassIDType.Texture2D);
+                filteredAssetTypesList.UnionWith(new HashSet<ClassIDType>
+                {
+                    ClassIDType.Texture2D,
+                    ClassIDType.MonoBehaviour,
+                    ClassIDType.MonoScript
+                });
             }
             
             filteredAssetTypesList.UnionWith(classIDTypes);

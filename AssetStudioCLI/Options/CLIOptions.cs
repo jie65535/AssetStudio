@@ -1,4 +1,6 @@
 ﻿using AssetStudio;
+using SixLabors.ImageSharp.Processing;
+using SixLabors.ImageSharp.Processing.Processors.Transforms;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -12,6 +14,7 @@ namespace AssetStudioCLI.Options
         General,
         Convert,
         Logger,
+        Arknights,
         Advanced,
     }
 
@@ -55,6 +58,13 @@ namespace AssetStudioCLI.Options
         NameAndContainer,
     }
 
+    internal enum AkSpriteMaskMode
+    {
+        None,
+        Internal,
+        External
+    }
+
     internal static class CLIOptions
     {
         public static bool isParsed;
@@ -79,6 +89,14 @@ namespace AssetStudioCLI.Options
         public static bool convertTexture;
         public static Option<ImageFormat> o_imageFormat;
         public static Option<AudioFormat> o_audioFormat;
+        //arknights
+        public static bool akResizedOnly;
+        public static Option<AkSpriteMaskMode> o_akSpriteMaskMode;
+        public static Option<IResampler> o_akAlphaMaskResampler;
+        private static string resamplerName;
+        public static Option<int> o_akAlphaMaskGamma;
+        public static Option<bool> f_akOriginalAvgNames;
+        public static Option<bool> f_akAddAliases;
         //advanced
         public static Option<ExportListType> o_exportAssetList;
         public static Option<List<string>> o_filterByName;
@@ -249,6 +267,65 @@ namespace AssetStudioCLI.Options
             );
             #endregion
 
+            #region Arknights Options
+            akResizedOnly = true;
+            o_akSpriteMaskMode = new GroupedOption<AkSpriteMaskMode>
+            (
+                optionDefaultValue: AkSpriteMaskMode.External,
+                optionName: "--spritemask-mode <value>",
+                optionDescription: "Specify the mode in which you want to export sprites with alpha mask\n" +
+                    "<Value: none | internalOnly | searchExternal(default)>\n" +
+                    "None - Export sprites without alpha mask applied\n" +
+                    "Internal - Export sprites with internal alpha mask applied (if exist)\n" +
+                    "SearchExternal - Export sprites with internal alpha mask applied,\n" +
+                    "and in case it doesn't exist, Studio will try to find an external alpha mask\n" +
+                    "Example: \"--spritemask-mode internalOnly\"\n",
+                optionHelpGroup: HelpGroups.Arknights
+            );
+            o_akAlphaMaskResampler = new GroupedOption<IResampler>
+            (
+                optionDefaultValue: KnownResamplers.MitchellNetravali,
+                optionName: "--alphamask-resampler <value>",
+                optionDescription: "Specify the alpha mask upscale algorithm for 2048x2048 sprites\n" +
+                    "<Value: nearest | bilinear | bicubic | mitchell(default) | spline | welch>\n" +
+                    "Mitchell - Mitchell Netravali algorithm. Yields good equilibrium between \n" +
+                    "sharpness and smoothness (produces less artifacts than bicubic in case of alpha masks)\n" +
+                    "Spline - Similar to Mitchell Netravali but yielding smoother results\n" +
+                    "Welch - A high speed algorithm that delivers very sharpened results\n" +
+                    "Example: \"--alphamask-resampler bicubic\"\n",
+                optionHelpGroup: HelpGroups.Arknights
+            );
+            resamplerName = "Mitchell";
+            o_akAlphaMaskGamma = new GroupedOption<int>
+            (
+                optionDefaultValue: 2,
+                optionName: "--alphamask-gamma <value>",
+                optionDescription: "Specify the alpha mask gamma correction for 2048x2048 sprites\n" +
+                    "<Value: integer number from -5 to 5 (default=2)>\n" +
+                    "<0 - Make the alpha mask darker\n" +
+                    "0 - Do not change the gamma of alpha mask\n" +
+                    ">0 - Make the alpha mask lighter\n" +
+                    "Example: \"--alphamask-gamma 0\"\n",
+                optionHelpGroup: HelpGroups.Arknights
+            );
+            f_akOriginalAvgNames = new GroupedOption<bool>
+            (
+                optionDefaultValue: false,
+                optionName: "--original-avg-names",
+                optionDescription: "(Flag) If specified, names of avg sprites with faces will not be fixed\n",
+                optionHelpGroup: HelpGroups.Arknights,
+                isFlag: true
+            );
+            f_akAddAliases = new GroupedOption<bool>
+            (
+                optionDefaultValue: false,
+                optionName: "--add-aliases",
+                optionDescription: "(Flag) If specified, aliases will be added to avg sprite names (if exist)",
+                optionHelpGroup: HelpGroups.Arknights,
+                isFlag: true
+            );
+            #endregion
+
             #region Init Advanced Options
             o_exportAssetList = new GroupedOption<ExportListType>
             (
@@ -315,7 +392,7 @@ namespace AssetStudioCLI.Options
             (
                 optionDefaultValue: false,
                 optionName: "--not-restore-extension",
-                optionDescription: "(Flag) If specified, AssetStudio will not try to use/restore original TextAsset\nextension name, and will just export all TextAssets with the \".txt\" extension",
+                optionDescription: "(Flag) If specified, Studio will not try to use/restore original TextAsset\nextension name, and will just export all TextAssets with the \".txt\" extension",
                 optionHelpGroup: HelpGroups.Advanced,
                 isFlag: true
             );
@@ -378,6 +455,14 @@ namespace AssetStudioCLI.Options
                 {
                     case "--not-restore-extension":
                         f_notRestoreExtensionName.Value = true;
+                        resplittedArgs.RemoveAt(i);
+                        break;
+                    case "--original-avg-names":
+                        f_akOriginalAvgNames.Value = true;
+                        resplittedArgs.RemoveAt(i);
+                        break;
+                    case "--add-aliases":
+                        f_akAddAliases.Value = true;
                         resplittedArgs.RemoveAt(i);
                         break;
                 }
@@ -617,6 +702,65 @@ namespace AssetStudioCLI.Options
                                     return;
                             }
                             break;
+                        case "--spritemask-mode":
+                            switch (value.ToLower())
+                            {
+                                case "none":
+                                    o_akSpriteMaskMode.Value = AkSpriteMaskMode.None;
+                                    break;
+                                case "internal":
+                                    o_akSpriteMaskMode.Value = AkSpriteMaskMode.Internal;
+                                    break;
+                                case "searchexternal":
+                                    o_akSpriteMaskMode.Value = AkSpriteMaskMode.External;
+                                    break;
+                                default:
+                                    Console.WriteLine($"{"Error".Color(brightRed)} during parsing [{option}] option. Unsupported sprite mask mode: [{value.Color(brightRed)}].\n");
+                                    Console.WriteLine(o_akSpriteMaskMode.Description);
+                                    return;
+                            }
+                            break;
+                        case "--alphamask-resampler":
+                            switch (value.ToLower())
+                            {
+                                case "nearest":
+                                    o_akAlphaMaskResampler.Value = KnownResamplers.NearestNeighbor;
+                                    break;
+                                case "bilinear":
+                                    o_akAlphaMaskResampler.Value = KnownResamplers.Triangle;
+                                    break;
+                                case "bicubic":
+                                    o_akAlphaMaskResampler.Value = KnownResamplers.Bicubic;
+                                    break;
+                                case "mitchell":
+                                    o_akAlphaMaskResampler.Value = KnownResamplers.MitchellNetravali;
+                                    break;
+                                case "spline":
+                                    o_akAlphaMaskResampler.Value = KnownResamplers.Spline;
+                                    break;
+                                case "welch":
+                                    o_akAlphaMaskResampler.Value = KnownResamplers.Welch;
+                                    break;
+                                default:
+                                    Console.WriteLine($"{"Error".Color(brightRed)} during parsing [{option}] option. Unsupported alpha mask resampler: [{value.Color(brightRed)}].\n");
+                                    Console.WriteLine(o_akAlphaMaskResampler.Description);
+                                    return;
+                            }
+                            resamplerName = value.ToLower();
+                            break;
+                        case "--alphamask-gamma":
+                            var isInt = int.TryParse(value, out int intValue);
+                            if (isInt && intValue >= -5 && intValue <= 5)
+                            {
+                                o_akAlphaMaskGamma.Value = intValue;
+                            }
+                            else
+                            {
+                                Console.WriteLine($"{"Error".Color(brightRed)} during parsing [{option}] option. Unsupported gamma correction value: [{value.Color(brightRed)}].\n");
+                                Console.WriteLine(o_akAlphaMaskGamma.Description);
+                                return;
+                            }
+                            break;
                         case "--export-asset-list":
                             switch (value.ToLower())
                             {
@@ -815,6 +959,11 @@ namespace AssetStudioCLI.Options
                     sb.AppendLine($"# Asset Group Option: {o_groupAssetsBy}");
                     sb.AppendLine($"# Export Image Format: {o_imageFormat}");
                     sb.AppendLine($"# Export Audio Format: {o_audioFormat}");
+                    sb.AppendLine($"# [Arkingths] Sprite Mode: {o_akSpriteMaskMode}");
+                    sb.AppendLine($"# [Arknights] Mask Resampler: {resamplerName}");
+                    sb.AppendLine($"# [Arknights] Mask Gamma Correction: {o_akAlphaMaskGamma.Value * 10:+#;-#;0}%");
+                    sb.AppendLine($"# [Arknights] Original Avg Names: {f_akOriginalAvgNames}");
+                    sb.AppendLine($"# [Arknights] Add Aliases: {f_akAddAliases}");
                     sb.AppendLine($"# Log Level: {o_logLevel}");
                     sb.AppendLine($"# Log Output: {o_logOutput}");
                     sb.AppendLine($"# Export Asset List: {o_exportAssetList}");

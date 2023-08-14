@@ -1,6 +1,9 @@
-﻿using AssetStudio;
+﻿using Arknights;
+using AssetStudio;
 using AssetStudioCLI.Options;
 using Newtonsoft.Json;
+using SixLabors.ImageSharp.PixelFormats;
+using SixLabors.ImageSharp;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -204,11 +207,56 @@ namespace AssetStudioCLI
 
         public static bool ExportSprite(AssetItem item, string exportPath)
         {
+            Image<Bgra32> image;
+            AvgSprite avgSprite = null;
+            var alias = "";
+            var m_Sprite = (Sprite)item.Asset;
             var type = CLIOptions.o_imageFormat.Value;
-            var alphaMask = SpriteMaskMode.On;
-            if (!TryExportFile(exportPath, item, "." + type.ToString().ToLower(), out var exportFullPath))
+            var spriteMaskMode = CLIOptions.o_akSpriteMaskMode.Value != AkSpriteMaskMode.None ? SpriteMaskMode.Export : SpriteMaskMode.Off;
+            var isCharAvgSprite = item.Container.Contains("avg/characters");
+            var isCharArt = item.Container.Contains("arts/characters");
+
+            if (isCharAvgSprite)
+            {
+                avgSprite = new AvgSprite(item);
+
+                if (CLIOptions.f_akAddAliases.Value && !string.IsNullOrEmpty(avgSprite.Alias))
+                {
+                    alias = $"_{avgSprite.Alias}";
+                }
+            }
+
+            if (!CLIOptions.f_akOriginalAvgNames.Value)
+            {
+                if ((m_Sprite.m_Name.Length < 3 && m_Sprite.m_Name.All(char.IsDigit))  //not grouped ("spriteIndex")
+                    || (m_Sprite.m_Name.Length < 5 && m_Sprite.m_Name.Contains('$') && m_Sprite.m_Name.Split('$')[0].All(char.IsDigit)))  //grouped ("spriteIndex$groupIndex")
+                {
+                    var fullName = Path.GetFileNameWithoutExtension(item.Container);
+                    item.Text = $"{fullName}#{m_Sprite.m_Name}";
+                }
+            }
+
+            if (!TryExportFile(exportPath, item, "." + type.ToString().ToLower(), out var exportFullPath, alias))
                 return false;
-            var image = ((Sprite)item.Asset).GetImage(alphaMask);
+
+            if (CLIOptions.o_akSpriteMaskMode.Value == AkSpriteMaskMode.External && (isCharAvgSprite || isCharArt))
+            {
+                if (m_Sprite.m_RD.alphaTexture.IsNull)
+                {
+                    var charAlphaAtlas = AkSpriteHelper.TryFindAlphaTex(item, avgSprite, isCharAvgSprite);
+                    if (charAlphaAtlas != null)
+                    {
+                        m_Sprite.m_RD.alphaTexture.Set(charAlphaAtlas);
+                        m_Sprite.akSplitAlpha = true;
+                    }
+                }
+                image = m_Sprite.AkGetImage(avgSprite, spriteMaskMode);
+            }
+            else
+            {
+                image = m_Sprite.GetImage(spriteMaskMode);
+            }
+
             if (image != null)
             {
                 using (image)
@@ -253,9 +301,9 @@ namespace AssetStudioCLI
             return false;
         }
 
-        private static bool TryExportFile(string dir, AssetItem item, string extension, out string fullPath)
+        private static bool TryExportFile(string dir, AssetItem item, string extension, out string fullPath, string alias = "")
         {
-            var fileName = FixFileName(item.Text);
+            var fileName = FixFileName(item.Text) + alias;
             fullPath = Path.Combine(dir, fileName + extension);
             if (!File.Exists(fullPath))
             {
