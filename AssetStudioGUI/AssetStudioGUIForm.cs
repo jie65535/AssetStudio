@@ -1,4 +1,5 @@
-﻿using AssetStudio;
+﻿using Arknights;
+using AssetStudio;
 using Newtonsoft.Json;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
@@ -19,6 +20,8 @@ using System.Timers;
 using System.Windows.Forms;
 using static AssetStudioGUI.Studio;
 using Font = AssetStudio.Font;
+using SharpImage = SixLabors.ImageSharp;
+using SharpImageFormat = SixLabors.ImageSharp.PixelFormats;
 using Microsoft.WindowsAPICodePack.Taskbar;
 #if NET472
 using Vector3 = OpenTK.Vector3;
@@ -47,6 +50,7 @@ namespace AssetStudioGUI
 
         #region SpriteControl
         private SpriteMaskMode spriteMaskVisibleMode = SpriteMaskMode.On;
+        private bool showDebugInfo = false;
         #endregion
 
         #region TexControl
@@ -122,6 +126,8 @@ namespace AssetStudioGUI
             displayAll.Checked = Properties.Settings.Default.displayAll;
             displayInfo.Checked = Properties.Settings.Default.displayInfo;
             enablePreview.Checked = Properties.Settings.Default.enablePreview;
+            akFixFaceSpriteNamesToolStripMenuItem.Checked = Properties.Settings.Default.fixFaceSpriteNames;
+            akUseExternalAlphaToolStripMenuItem.Checked = Properties.Settings.Default.useExternalAlpha;
             FMODinit();
             listSearchFilterMode.SelectedIndex = 0;
 
@@ -252,6 +258,9 @@ namespace AssetStudioGUI
             typeMap.Clear();
             classesListView.EndUpdate();
 
+            if (akFixFaceSpriteNamesToolStripMenuItem.Checked)
+                FixFaceSpriteNames();
+
             var types = exportableAssets.Select(x => x.Type).Distinct().OrderBy(x => x.ToString()).ToArray();
             foreach (var type in types)
             {
@@ -361,6 +370,10 @@ namespace AssetStudioGUI
                                 break;
                             case Keys.M:
                                 spriteMaskVisibleMode = spriteMaskVisibleMode == SpriteMaskMode.MaskOnly ? SpriteMaskMode.On : SpriteMaskMode.MaskOnly;
+                                need = true;
+                                break;
+                            case Keys.D:
+                                showDebugInfo = !showDebugInfo;
                                 need = true;
                                 break;
                         }
@@ -1262,7 +1275,33 @@ namespace AssetStudioGUI
 
         private void PreviewSprite(AssetItem assetItem, Sprite m_Sprite)
         {
-            var image = m_Sprite.GetImage(spriteMaskMode: spriteMaskVisibleMode);
+            SharpImage.Image<SharpImageFormat.Bgra32> image;
+            AvgSprite avgSprite = null;
+
+            bool isCharAvgSprite = assetItem.Container.Contains("avg/characters");
+            bool isCharArt = assetItem.Container.Contains("arts/characters");
+            if (isCharAvgSprite)
+            {
+                avgSprite = new AvgSprite(assetItem);
+            }
+            if (akUseExternalAlphaToolStripMenuItem.Checked && (isCharAvgSprite || isCharArt))
+            {
+                if (m_Sprite.m_RD.alphaTexture.IsNull)
+                {
+                    var charAlphaTex = AkSpriteHelper.TryFindAlphaTex(assetItem, avgSprite, isCharAvgSprite);
+                    if (charAlphaTex != null)
+                    {
+                        m_Sprite.m_RD.alphaTexture.Set(charAlphaTex);
+                        m_Sprite.akSplitAlpha = true;
+                    }
+                }
+                image = m_Sprite.AkGetImage(avgSprite, spriteMaskMode: spriteMaskVisibleMode);
+            }
+            else
+            {
+                image = m_Sprite.GetImage(spriteMaskMode: spriteMaskVisibleMode);
+            }
+
             if (image != null)
             {
                 var bitmap = new DirectBitmap(image);
@@ -1270,10 +1309,33 @@ namespace AssetStudioGUI
                 assetItem.InfoText = $"Width: {bitmap.Width}\nHeight: {bitmap.Height}\n";
                 PreviewTexture(bitmap);
 
-                if (!m_Sprite.m_RD.alphaTexture.IsNull)
+                if (!m_Sprite.m_RD.alphaTexture.IsNull && (akUseExternalAlphaToolStripMenuItem.Checked || !m_Sprite.akSplitAlpha))
                 {
-                    assetItem.InfoText += $"Alpha Mask: {spriteMaskVisibleMode}\n";
-                    StatusStripUpdate("'Ctrl'+'A' - Enable/Disable alpha mask usage. 'Ctrl'+'M' - Show alpha mask only.");
+                    var sb = new StringBuilder();
+
+                    sb.AppendLine($"Alpha mask: {spriteMaskVisibleMode}");
+                    sb.Append(spriteMaskVisibleMode != SpriteMaskMode.Off ? $"Is external mask: {m_Sprite.akSplitAlpha}\n" : "");
+                    if (avgSprite != null)
+                    {
+                        sb.AppendLine($"Alias: \"{avgSprite.Alias}\"");
+                        if (showDebugInfo)
+                        {
+                            sb.AppendLine($"[Debug]");
+                            sb.AppendLine($"Is avg hub parsed: {avgSprite.IsHubParsed}");
+                            if (avgSprite.IsHubParsed)
+                            {
+                                sb.AppendLine($"Is face data exist: {avgSprite.FaceSize.Width > 0}");
+                                sb.AppendLine($"Is face sprite: {avgSprite.IsFaceSprite}");
+                                sb.AppendLine($"Is whole body sprite: {avgSprite.IsWholeBodySprite}");
+                            }
+                        }
+                        StatusStripUpdate("'Ctrl'+'A' - Enable/Disable alpha mask usage. 'Ctrl'+'M' - Show alpha mask only. 'Ctrl'+'D' - Show debug info.");
+                    }
+                    else
+                    {
+                        StatusStripUpdate("'Ctrl'+'A' - Enable/Disable alpha mask usage. 'Ctrl'+'M' - Show alpha mask only.");
+                    }
+                    assetItem.InfoText += sb.ToString();
                 }
             }
             else
@@ -1377,6 +1439,33 @@ namespace AssetStudioGUI
 
             taskbar.SetProgressState(TaskbarProgressBarState.NoProgress);
             FMODreset();
+        }
+
+        private void FixFaceSpriteNames()
+        {
+            assetListView.BeginUpdate();
+            for (int i = 0; i < assetListView.Items.Count; i++)
+            {
+                var assetItem = (AssetItem)assetListView.Items[i];
+                if (assetItem.Type == ClassIDType.Sprite)
+                {
+                    var sprite = (Sprite)assetItem.Asset;
+                    if (akFixFaceSpriteNamesToolStripMenuItem.Checked)
+                    {
+                        if ((sprite.m_Name.Length < 3 && sprite.m_Name.All(char.IsDigit))  //not grouped ("spriteIndex")
+                            || (sprite.m_Name.Length < 5 && sprite.m_Name.Contains('$') && sprite.m_Name.Split('$')[0].All(char.IsDigit)))  //grouped ("spriteIndex$groupIndex")
+                        {
+                            var fullName = Path.GetFileNameWithoutExtension(assetItem.Container);
+                            assetItem.Text = $"{fullName}#{sprite.m_Name}";
+                        }
+                    }
+                    else if (assetItem.Text != sprite.m_Name)
+                    {
+                        assetItem.Text = sprite.m_Name;
+                    }
+                }
+            }
+            assetListView.EndUpdate();
         }
 
         private void tabControl2_SelectedIndexChanged(object sender, EventArgs e)
@@ -1865,6 +1954,26 @@ namespace AssetStudioGUI
                 node.Collapse(ignoreChildren: false);
             }
             sceneTreeView.EndUpdate();
+        }
+
+        private void akFixFaceSpriteNamesToolStripMenuItem_Check(object sender, EventArgs e)
+        {
+            Properties.Settings.Default.fixFaceSpriteNames = akFixFaceSpriteNamesToolStripMenuItem.Checked;
+            Properties.Settings.Default.Save();
+            FixFaceSpriteNames();
+        }
+
+        private void akUseExternalAlphaToolStripMenuItem_Check(object sender, EventArgs e)
+        {
+            Properties.Settings.Default.useExternalAlpha = akUseExternalAlphaToolStripMenuItem.Checked;
+            Properties.Settings.Default.Save();
+
+            if (lastSelectedItem?.Asset.type == ClassIDType.Sprite)
+            {
+                StatusStripUpdate("");
+                PreviewAsset(lastSelectedItem);
+                assetInfoLabel.Text = lastSelectedItem.InfoText;
+            }
         }
 
         private void aboutToolStripMenuItem_Click(object sender, EventArgs e)

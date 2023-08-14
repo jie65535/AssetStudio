@@ -1,4 +1,7 @@
-﻿using AssetStudio;
+﻿using Arknights;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.PixelFormats;
+using AssetStudio;
 using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.IO;
@@ -239,11 +242,46 @@ namespace AssetStudioGUI
 
         public static bool ExportSprite(AssetItem item, string exportPath)
         {
-            var type = Properties.Settings.Default.convertType;
+            Image<Bgra32> image;
+            AvgSprite avgSprite = null;
+            var alias = "";
+            var m_Sprite = (Sprite)item.Asset;
             var spriteMaskMode = Properties.Settings.Default.exportSpriteWithMask ? SpriteMaskMode.Export : SpriteMaskMode.Off;
-            if (!TryExportFile(exportPath, item, "." + type.ToString().ToLower(), out var exportFullPath))
+            var type = Properties.Settings.Default.convertType;           
+            var isCharAvgSprite = item.Container.Contains("avg/characters");
+            var isCharArt = item.Container.Contains("arts/characters");
+
+            if (isCharAvgSprite)
+            {
+                avgSprite = new AvgSprite(item);
+
+                if (Properties.Settings.Default.addAliases && !string.IsNullOrEmpty(avgSprite.Alias))
+                {
+                    alias = $"_{avgSprite.Alias}";
+                }
+            }
+
+            if (!TryExportFile(exportPath, item, "." + type.ToString().ToLower(), out var exportFullPath, alias))
                 return false;
-            var image = ((Sprite)item.Asset).GetImage(spriteMaskMode: spriteMaskMode);
+
+            if (Properties.Settings.Default.useExternalAlpha && (isCharAvgSprite || isCharArt))
+            {
+                if (m_Sprite.m_RD.alphaTexture.IsNull)
+                {
+                    var charAlphaAtlas = AkSpriteHelper.TryFindAlphaTex(item, avgSprite, isCharAvgSprite);
+                    if (charAlphaAtlas != null)
+                    {
+                        m_Sprite.m_RD.alphaTexture.Set(charAlphaAtlas);
+                        m_Sprite.akSplitAlpha = true;
+                    }
+                }
+                image = m_Sprite.AkGetImage(avgSprite, spriteMaskMode: spriteMaskMode);
+            }
+            else
+            {
+                image = m_Sprite.GetImage(spriteMaskMode: spriteMaskMode);
+            }
+
             if (image != null)
             {
                 using (image)
@@ -266,9 +304,9 @@ namespace AssetStudioGUI
             return true;
         }
 
-        private static bool TryExportFile(string dir, AssetItem item, string extension, out string fullPath)
+        private static bool TryExportFile(string dir, AssetItem item, string extension, out string fullPath, string alias = "")
         {
-            var fileName = FixFileName(item.Text);
+            var fileName = FixFileName(item.Text) + alias;
             fullPath = Path.Combine(dir, fileName + extension);
             if (!File.Exists(fullPath))
             {

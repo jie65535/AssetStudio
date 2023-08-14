@@ -64,17 +64,31 @@
             this.exportAllNodes = new System.Windows.Forms.CheckBox();
             this.eulerFilter = new System.Windows.Forms.CheckBox();
             this.exportUvsTooltip = new System.Windows.Forms.ToolTip(this.components);
+            this.akResamplerLabel = new System.Windows.Forms.Label();
+            this.akResamplerComboBox = new System.Windows.Forms.ComboBox();
+            this.akSpritesAlphaGroupBox = new System.Windows.Forms.GroupBox();
+            this.akGammaNoteLabel = new System.Windows.Forms.Label();
+            this.akResamplerDescLabel = new System.Windows.Forms.Label();
+            this.akResizedOnlyCheckBox = new System.Windows.Forms.CheckBox();
+            this.akGammaValueLabel = new System.Windows.Forms.Label();
+            this.akGammaLabel = new System.Windows.Forms.Label();
+            this.akAlphaMaskGammaTrackBar = new System.Windows.Forms.TrackBar();
+            this.akSpritesExportGroupBox = new System.Windows.Forms.GroupBox();
+            this.akAddAliasesCheckBox = new System.Windows.Forms.CheckBox();
             this.groupBox1.SuspendLayout();
             this.panel1.SuspendLayout();
             this.groupBox2.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.scaleFactor)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.boneSize)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.filterPrecision)).BeginInit();
+            this.akSpritesAlphaGroupBox.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.akAlphaMaskGammaTrackBar)).BeginInit();
+            this.akSpritesExportGroupBox.SuspendLayout();
             this.SuspendLayout();
             // 
             // OKbutton
             // 
-            this.OKbutton.Location = new System.Drawing.Point(381, 380);
+            this.OKbutton.Location = new System.Drawing.Point(681, 381);
             this.OKbutton.Name = "OKbutton";
             this.OKbutton.Size = new System.Drawing.Size(75, 23);
             this.OKbutton.TabIndex = 6;
@@ -85,7 +99,7 @@
             // Cancel
             // 
             this.Cancel.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-            this.Cancel.Location = new System.Drawing.Point(462, 380);
+            this.Cancel.Location = new System.Drawing.Point(762, 381);
             this.Cancel.Name = "Cancel";
             this.Cancel.Size = new System.Drawing.Size(75, 23);
             this.Cancel.TabIndex = 7;
@@ -493,13 +507,140 @@
             this.eulerFilter.Text = "EulerFilter";
             this.eulerFilter.UseVisualStyleBackColor = true;
             // 
+            // akResamplerLabel
+            // 
+            this.akResamplerLabel.AutoSize = true;
+            this.akResamplerLabel.Location = new System.Drawing.Point(6, 21);
+            this.akResamplerLabel.Name = "akResamplerLabel";
+            this.akResamplerLabel.Size = new System.Drawing.Size(113, 13);
+            this.akResamplerLabel.TabIndex = 5;
+            this.akResamplerLabel.Text = "Alpha mask resampler:";
+            this.exportUvsTooltip.SetToolTip(this.akResamplerLabel, "Only affects exported images");
+            // 
+            // akResamplerComboBox
+            // 
+            this.akResamplerComboBox.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.akResamplerComboBox.FormattingEnabled = true;
+            this.akResamplerComboBox.Items.AddRange(new object[] {
+            "Nearest Neighbor",
+            "Bilinear",
+            "Bicubic",
+            "Mitchell-Netravali",
+            "Spline",
+            "Welch"});
+            this.akResamplerComboBox.Location = new System.Drawing.Point(125, 18);
+            this.akResamplerComboBox.Name = "akResamplerComboBox";
+            this.akResamplerComboBox.Size = new System.Drawing.Size(169, 21);
+            this.akResamplerComboBox.TabIndex = 4;
+            this.exportUvsTooltip.SetToolTip(this.akResamplerComboBox, "Only affects exported images");
+            // 
+            // akSpritesAlphaGroupBox
+            // 
+            this.akSpritesAlphaGroupBox.Controls.Add(this.akGammaNoteLabel);
+            this.akSpritesAlphaGroupBox.Controls.Add(this.akResamplerDescLabel);
+            this.akSpritesAlphaGroupBox.Controls.Add(this.akResamplerLabel);
+            this.akSpritesAlphaGroupBox.Controls.Add(this.akResamplerComboBox);
+            this.akSpritesAlphaGroupBox.Controls.Add(this.akResizedOnlyCheckBox);
+            this.akSpritesAlphaGroupBox.Controls.Add(this.akGammaValueLabel);
+            this.akSpritesAlphaGroupBox.Controls.Add(this.akGammaLabel);
+            this.akSpritesAlphaGroupBox.Controls.Add(this.akAlphaMaskGammaTrackBar);
+            this.akSpritesAlphaGroupBox.Location = new System.Drawing.Point(537, 13);
+            this.akSpritesAlphaGroupBox.Name = "akSpritesAlphaGroupBox";
+            this.akSpritesAlphaGroupBox.Size = new System.Drawing.Size(300, 178);
+            this.akSpritesAlphaGroupBox.TabIndex = 12;
+            this.akSpritesAlphaGroupBox.TabStop = false;
+            this.akSpritesAlphaGroupBox.Text = "Sprites: Alpha Mask [Arknights]";
+            // 
+            // akGammaNoteLabel
+            // 
+            this.akGammaNoteLabel.AutoSize = true;
+            this.akGammaNoteLabel.ForeColor = System.Drawing.SystemColors.GrayText;
+            this.akGammaNoteLabel.Location = new System.Drawing.Point(6, 138);
+            this.akGammaNoteLabel.Name = "akGammaNoteLabel";
+            this.akGammaNoteLabel.Size = new System.Drawing.Size(230, 13);
+            this.akGammaNoteLabel.TabIndex = 7;
+            this.akGammaNoteLabel.Text = "* Gamma settings also affect the preview image";
+            // 
+            // akResamplerDescLabel
+            // 
+            this.akResamplerDescLabel.AutoSize = true;
+            this.akResamplerDescLabel.ForeColor = System.Drawing.SystemColors.GrayText;
+            this.akResamplerDescLabel.Location = new System.Drawing.Point(6, 43);
+            this.akResamplerDescLabel.Name = "akResamplerDescLabel";
+            this.akResamplerDescLabel.Size = new System.Drawing.Size(244, 13);
+            this.akResamplerDescLabel.TabIndex = 6;
+            this.akResamplerDescLabel.Text = "Alpha mask upscale method for 2048x2048 sprites";
+            // 
+            // akResizedOnlyCheckBox
+            // 
+            this.akResizedOnlyCheckBox.AutoSize = true;
+            this.akResizedOnlyCheckBox.Checked = true;
+            this.akResizedOnlyCheckBox.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.akResizedOnlyCheckBox.Location = new System.Drawing.Point(172, 85);
+            this.akResizedOnlyCheckBox.Name = "akResizedOnlyCheckBox";
+            this.akResizedOnlyCheckBox.Size = new System.Drawing.Size(122, 17);
+            this.akResizedOnlyCheckBox.TabIndex = 3;
+            this.akResizedOnlyCheckBox.Text = "Apply to resized only";
+            this.akResizedOnlyCheckBox.UseVisualStyleBackColor = true;
+            // 
+            // akGammaValueLabel
+            // 
+            this.akGammaValueLabel.AutoSize = true;
+            this.akGammaValueLabel.Location = new System.Drawing.Point(111, 86);
+            this.akGammaValueLabel.Name = "akGammaValueLabel";
+            this.akGammaValueLabel.Size = new System.Drawing.Size(41, 13);
+            this.akGammaValueLabel.TabIndex = 2;
+            this.akGammaValueLabel.Text = "Default";
+            // 
+            // akGammaLabel
+            // 
+            this.akGammaLabel.AutoSize = true;
+            this.akGammaLabel.Location = new System.Drawing.Point(6, 86);
+            this.akGammaLabel.Name = "akGammaLabel";
+            this.akGammaLabel.Size = new System.Drawing.Size(102, 13);
+            this.akGammaLabel.TabIndex = 1;
+            this.akGammaLabel.Text = "Alpha mask gamma:";
+            // 
+            // akAlphaMaskGammaTrackBar
+            // 
+            this.akAlphaMaskGammaTrackBar.LargeChange = 2;
+            this.akAlphaMaskGammaTrackBar.Location = new System.Drawing.Point(6, 102);
+            this.akAlphaMaskGammaTrackBar.Maximum = 5;
+            this.akAlphaMaskGammaTrackBar.Minimum = -5;
+            this.akAlphaMaskGammaTrackBar.Name = "akAlphaMaskGammaTrackBar";
+            this.akAlphaMaskGammaTrackBar.Size = new System.Drawing.Size(288, 45);
+            this.akAlphaMaskGammaTrackBar.TabIndex = 0;
+            this.akAlphaMaskGammaTrackBar.Scroll += new System.EventHandler(this.akAlphaMaskGammaTrackBar_Scroll);
+            // 
+            // akSpritesExportGroupBox
+            // 
+            this.akSpritesExportGroupBox.Controls.Add(this.akAddAliasesCheckBox);
+            this.akSpritesExportGroupBox.Location = new System.Drawing.Point(537, 197);
+            this.akSpritesExportGroupBox.Name = "akSpritesExportGroupBox";
+            this.akSpritesExportGroupBox.Size = new System.Drawing.Size(300, 178);
+            this.akSpritesExportGroupBox.TabIndex = 13;
+            this.akSpritesExportGroupBox.TabStop = false;
+            this.akSpritesExportGroupBox.Text = "Sprites: Export [Arknights]";
+            // 
+            // akAddAliasesCheckBox
+            // 
+            this.akAddAliasesCheckBox.AutoSize = true;
+            this.akAddAliasesCheckBox.Location = new System.Drawing.Point(6, 28);
+            this.akAddAliasesCheckBox.Name = "akAddAliasesCheckBox";
+            this.akAddAliasesCheckBox.Size = new System.Drawing.Size(213, 17);
+            this.akAddAliasesCheckBox.TabIndex = 0;
+            this.akAddAliasesCheckBox.Text = "Add aliases to avg sprite names (if exist)";
+            this.akAddAliasesCheckBox.UseVisualStyleBackColor = true;
+            // 
             // ExportOptions
             // 
             this.AcceptButton = this.OKbutton;
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.CancelButton = this.Cancel;
-            this.ClientSize = new System.Drawing.Size(549, 416);
+            this.ClientSize = new System.Drawing.Size(849, 416);
+            this.Controls.Add(this.akSpritesExportGroupBox);
+            this.Controls.Add(this.akSpritesAlphaGroupBox);
             this.Controls.Add(this.groupBox2);
             this.Controls.Add(this.groupBox1);
             this.Controls.Add(this.Cancel);
@@ -521,6 +662,11 @@
             ((System.ComponentModel.ISupportInitialize)(this.scaleFactor)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.boneSize)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.filterPrecision)).EndInit();
+            this.akSpritesAlphaGroupBox.ResumeLayout(false);
+            this.akSpritesAlphaGroupBox.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.akAlphaMaskGammaTrackBar)).EndInit();
+            this.akSpritesExportGroupBox.ResumeLayout(false);
+            this.akSpritesExportGroupBox.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -562,5 +708,16 @@
         private System.Windows.Forms.ToolTip exportUvsTooltip;
         private System.Windows.Forms.CheckBox exportSpriteWithAlphaMask;
         private System.Windows.Forms.RadioButton towebp;
+        private System.Windows.Forms.GroupBox akSpritesAlphaGroupBox;
+        private System.Windows.Forms.TrackBar akAlphaMaskGammaTrackBar;
+        private System.Windows.Forms.Label akResamplerDescLabel;
+        private System.Windows.Forms.Label akResamplerLabel;
+        private System.Windows.Forms.ComboBox akResamplerComboBox;
+        private System.Windows.Forms.CheckBox akResizedOnlyCheckBox;
+        private System.Windows.Forms.Label akGammaValueLabel;
+        private System.Windows.Forms.Label akGammaLabel;
+        private System.Windows.Forms.GroupBox akSpritesExportGroupBox;
+        private System.Windows.Forms.CheckBox akAddAliasesCheckBox;
+        private System.Windows.Forms.Label akGammaNoteLabel;
     }
 }

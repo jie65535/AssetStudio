@@ -286,5 +286,77 @@ namespace AssetStudioGUI.Properties {
                 this["exportSpriteWithMask"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool fixFaceSpriteNames {
+            get {
+                return ((bool)(this["fixFaceSpriteNames"]));
+            }
+            set {
+                this["fixFaceSpriteNames"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool useExternalAlpha {
+            get {
+                return ((bool)(this["useExternalAlpha"]));
+            }
+            set {
+                this["useExternalAlpha"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool addAliases {
+            get {
+                return ((bool)(this["addAliases"]));
+            }
+            set {
+                this["addAliases"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("3")]
+        public int resamplerIndex {
+            get {
+                return ((int)(this["resamplerIndex"]));
+            }
+            set {
+                this["resamplerIndex"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool resizedOnly {
+            get {
+                return ((bool)(this["resizedOnly"]));
+            }
+            set {
+                this["resizedOnly"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("2")]
+        public int alphaMaskGamma {
+            get {
+                return ((int)(this["alphaMaskGamma"]));
+            }
+            set {
+                this["alphaMaskGamma"] = value;
+            }
+        }
     }
 }

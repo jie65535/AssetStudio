@@ -205,6 +205,7 @@ namespace AssetStudio
         public PPtr<SpriteAtlas> m_SpriteAtlas;
         public SpriteRenderData m_RD;
         public Vector2[][] m_PhysicsShape;
+        public bool akSplitAlpha;
 
         public Sprite(ObjectReader reader) : base(reader)
         {
@@ -253,6 +254,8 @@ namespace AssetStudio
                     m_PhysicsShape[i] = reader.ReadVector2Array();
                 }
             }
+
+            akSplitAlpha = false;
 
             //vector m_Bones 2018 and up
         }

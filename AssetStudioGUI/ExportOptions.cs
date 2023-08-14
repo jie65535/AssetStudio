@@ -37,6 +37,13 @@ namespace AssetStudioGUI
             fbxVersion.SelectedIndex = Properties.Settings.Default.fbxVersion;
             fbxFormat.SelectedIndex = Properties.Settings.Default.fbxFormat;
 
+            //Arknights
+            akResamplerComboBox.SelectedIndex = Properties.Settings.Default.resamplerIndex;
+            akAlphaMaskGammaTrackBar.Value = Properties.Settings.Default.alphaMaskGamma;
+            akGammaValueLabel.Text = akAlphaMaskGammaTrackBar.Value == 0 ? "Default" : $"{akAlphaMaskGammaTrackBar.Value * 10:+#;-#;0}%";
+            akResizedOnlyCheckBox.Checked = Properties.Settings.Default.resizedOnly;
+            akAddAliasesCheckBox.Checked = Properties.Settings.Default.addAliases;
+            
         }
 
         private void OKbutton_Click(object sender, EventArgs e)
@@ -67,9 +74,22 @@ namespace AssetStudioGUI
             Properties.Settings.Default.scaleFactor = scaleFactor.Value;
             Properties.Settings.Default.fbxVersion = fbxVersion.SelectedIndex;
             Properties.Settings.Default.fbxFormat = fbxFormat.SelectedIndex;
+
+            //Arknights
+            Properties.Settings.Default.resamplerIndex = akResamplerComboBox.SelectedIndex;
+            Properties.Settings.Default.alphaMaskGamma = akAlphaMaskGammaTrackBar.Value;
+            Properties.Settings.Default.resizedOnly = akResizedOnlyCheckBox.Checked;
+            Properties.Settings.Default.addAliases = akAddAliasesCheckBox.Checked;
+
             Properties.Settings.Default.Save();
             DialogResult = DialogResult.OK;
             Close();
+        }
+
+        //Arknights
+        private void akAlphaMaskGammaTrackBar_Scroll(object sender, EventArgs e)
+        {
+            akGammaValueLabel.Text = akAlphaMaskGammaTrackBar.Value == 0 ? "Default" : $"{akAlphaMaskGammaTrackBar.Value * 10:+#;-#;0}%";
         }
 
         private void Cancel_Click(object sender, EventArgs e)
