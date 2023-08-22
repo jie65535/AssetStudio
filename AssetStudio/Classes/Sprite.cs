@@ -182,6 +182,13 @@ namespace AssetStudio
         public float width;
         public float height;
 
+        public Rectf(float x, float y, float w, float h) {
+            this.x = x;
+            this.y = y;
+            width = w;
+            height = h;
+        }
+
         public Rectf(BinaryReader reader)
         {
             x = reader.ReadSingle();

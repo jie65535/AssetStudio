@@ -3,6 +3,7 @@ namespace AssetStudio
 {
     public enum ClassIDType
     {
+        AkPortraitSprite = -2,
         UnknownType = -1,
         Object = 0,
         GameObject = 1,

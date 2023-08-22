@@ -247,7 +247,7 @@ namespace AssetStudioGUI
             var alias = "";
             var m_Sprite = (Sprite)item.Asset;
             var spriteMaskMode = Properties.Settings.Default.exportSpriteWithMask ? SpriteMaskMode.Export : SpriteMaskMode.Off;
-            var type = Properties.Settings.Default.convertType;           
+            var type = Properties.Settings.Default.convertType;
             var isCharAvgSprite = item.Container.Contains("avg/characters");
             var isCharArt = item.Container.Contains("arts/characters");
 
@@ -296,8 +296,32 @@ namespace AssetStudioGUI
             return false;
         }
 
+        public static bool ExportPortraitSprite(AssetItem item, string exportPath)
+        {
+            var type = Properties.Settings.Default.convertType;
+            var spriteMaskMode = Properties.Settings.Default.exportSpriteWithMask ? SpriteMaskMode.Export : SpriteMaskMode.Off;
+            if (!TryExportFile(exportPath, item, "." + type.ToString().ToLower(), out var exportFullPath))
+                return false;
+
+            var image = item.AkPortraitSprite.AkGetImage(spriteMaskMode: spriteMaskMode);
+            if (image != null)
+            {
+                using (image)
+                {
+                    using (var file = File.OpenWrite(exportFullPath))
+                    {
+                        image.WriteToStream(file, type);
+                    }
+                    return true;
+                }
+            }
+            return false;
+        }
+
         public static bool ExportRawFile(AssetItem item, string exportPath)
         {
+            if (item.Asset == null)
+                return false;
             if (!TryExportFile(exportPath, item, ".dat", out var exportFullPath))
                 return false;
             File.WriteAllBytes(exportFullPath, item.Asset.GetRawData());
@@ -375,6 +399,8 @@ namespace AssetStudioGUI
 
         public static bool ExportDumpFile(AssetItem item, string exportPath)
         {
+            if (item.Asset == null)
+                return false;
             if (!TryExportFile(exportPath, item, ".txt", out var exportFullPath))
                 return false;
             var str = item.Asset.Dump();
@@ -415,6 +441,8 @@ namespace AssetStudioGUI
                     return ExportMovieTexture(item, exportPath);
                 case ClassIDType.Sprite:
                     return ExportSprite(item, exportPath);
+                case ClassIDType.AkPortraitSprite:
+                    return ExportPortraitSprite(item, exportPath);
                 case ClassIDType.Animator:
                     return ExportAnimator(item, exportPath);
                 case ClassIDType.AnimationClip:

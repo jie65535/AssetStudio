@@ -263,8 +263,18 @@ namespace AssetStudioGUI
             {
                 if (pptr.TryGet(out var obj))
                 {
-                    objectAssetItemDic[obj].Container = container;
+                    var asset = objectAssetItemDic[obj];
+                    asset.Container = container;
                     allContainers[obj] = container;
+
+                    if (asset.Type == ClassIDType.MonoBehaviour && container.Contains("/arts/charportraits/portraits"))
+                    {
+                        var portraitsList = Arknights.AkSpriteHelper.GeneratePortraits(asset);
+                        foreach (var portrait in portraitsList)
+                        {
+                            exportableAssets.Add(new AssetItem(portrait));
+                        }
+                    }
                 }
             }
             foreach (var tmp in exportableAssets)
@@ -726,7 +736,7 @@ namespace AssetStudioGUI
 
         public static string DumpAsset(Object obj)
         {
-            var str = obj.Dump();
+            var str = obj?.Dump();
             if (str == null && obj is MonoBehaviour m_MonoBehaviour)
             {
                 var type = MonoBehaviourToTypeTree(m_MonoBehaviour);

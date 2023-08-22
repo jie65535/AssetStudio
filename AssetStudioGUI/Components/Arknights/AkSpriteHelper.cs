@@ -1,11 +1,14 @@
-﻿using AssetStudio;
+﻿using Arknights.PortraitSpriteMono;
+using AssetStudio;
 using AssetStudioGUI;
 using AssetStudioGUI.Properties;
+using Newtonsoft.Json;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 using SixLabors.ImageSharp.Processing.Processors.Transforms;
 using System;
+using System.Collections.Generic;
 using System.IO;
 
 namespace Arknights
@@ -44,8 +47,8 @@ namespace Arknights
         {
             if (m_Sprite.m_RD.texture.TryGet(out var m_Texture2D) && m_Sprite.m_RD.alphaTexture.TryGet(out var m_AlphaTexture2D) && spriteMaskMode != SpriteMaskMode.Off)
             {
-                Image<Bgra32> tex;
-                Image<Bgra32> alphaTex;
+                Image<Bgra32> tex = null;
+                Image<Bgra32> alphaTex = null;
 
                 if (avgSprite != null && avgSprite.IsHubParsed)
                 {
@@ -70,26 +73,95 @@ namespace Arknights
                 }
                 else
                 {
-                    tex = CutImage(m_Texture2D.ConvertToImage(false), m_Sprite.m_RD.textureRect, m_Sprite.m_RD.downscaleMultiplier);
+                    if (spriteMaskMode != SpriteMaskMode.MaskOnly)
+                    {
+                        tex = CutImage(m_Texture2D.ConvertToImage(false), m_Sprite.m_RD.textureRect, m_Sprite.m_RD.downscaleMultiplier);
+                    }
                     alphaTex = CutImage(m_AlphaTexture2D.ConvertToImage(false), m_Sprite.m_RD.textureRect, m_Sprite.m_RD.downscaleMultiplier);
                 }
 
-                switch (spriteMaskMode)
-                {
-                    case SpriteMaskMode.On:
-                        tex.ApplyRGBMask(alphaTex, isPreview: true);
-                        return tex;
-                    case SpriteMaskMode.Export:
-                        tex.ApplyRGBMask(alphaTex);
-                        return tex;
-                    case SpriteMaskMode.MaskOnly:
-                        tex.Dispose();
-                        return alphaTex;
-                }
+                return ImageRender(tex, alphaTex, spriteMaskMode);
             }
             else if (m_Sprite.m_RD.texture.TryGet(out m_Texture2D))
             {
                 return CutImage(m_Texture2D.ConvertToImage(false), m_Sprite.m_RD.textureRect, m_Sprite.m_RD.downscaleMultiplier);
+            }
+
+            return null;
+        }
+
+        public static Image<Bgra32> AkGetImage(this PortraitSprite portraitSprite, SpriteMaskMode spriteMaskMode = SpriteMaskMode.On)
+        {
+            if (portraitSprite.Texture != null && portraitSprite.AlphaTexture != null)
+            {
+                Image<Bgra32> tex = null;
+                Image<Bgra32> alphaTex = null;
+
+                if (spriteMaskMode != SpriteMaskMode.MaskOnly)
+                {
+                    tex = CutImage(portraitSprite.Texture.ConvertToImage(false), portraitSprite.TextureRect, portraitSprite.DownscaleMultiplier, portraitSprite.Rotate);
+                }
+                if (spriteMaskMode != SpriteMaskMode.Off)
+                {
+                    alphaTex = CutImage(portraitSprite.AlphaTexture.ConvertToImage(false), portraitSprite.TextureRect, portraitSprite.DownscaleMultiplier, portraitSprite.Rotate);
+                }
+
+                return ImageRender(tex, alphaTex, spriteMaskMode);
+            }
+
+            return null;
+        }
+
+        public static List<PortraitSprite> GeneratePortraits(AssetItem asset)
+        {
+            var portraits = new List<PortraitSprite>();
+
+            var portraitsDict = ((MonoBehaviour)asset.Asset).ToType();
+            if (portraitsDict == null)
+            {
+                Logger.Warning("Portraits MonoBehaviour is not readable.");
+                return portraits;
+            }
+            var portraitsJson = JsonConvert.SerializeObject(portraitsDict);
+            var portraitsData = JsonConvert.DeserializeObject<PortraitSpriteConfig>(portraitsJson);
+
+            var atlasTex = (Texture2D)Studio.exportableAssets.Find(x => x.m_PathID == portraitsData._atlas.Texture.m_PathID).Asset;
+            var atlasAlpha = (Texture2D)Studio.exportableAssets.Find(x => x.m_PathID == portraitsData._atlas.Alpha.m_PathID).Asset;
+
+            foreach (var portraitData in portraitsData._sprites)
+            {
+                var portraitSprite = new PortraitSprite()
+                {
+                    Name = portraitData.Name,
+                    AssetsFile = atlasTex.assetsFile,
+                    Container = asset.Container,
+                    Texture = atlasTex,
+                    AlphaTexture = atlasAlpha,
+                    TextureRect = new Rectf(portraitData.Rect.X, portraitData.Rect.Y, portraitData.Rect.W, portraitData.Rect.H),
+                    Rotate = portraitData.Rotate,
+                };
+                portraits.Add(portraitSprite);
+            }
+
+            return portraits;
+        }
+
+        private static Image<Bgra32> ImageRender(Image<Bgra32> tex, Image<Bgra32> alpha, SpriteMaskMode maskMode)
+        {
+            switch (maskMode)
+            {
+                case SpriteMaskMode.On:
+                    tex.ApplyRGBMask(alpha, isPreview: true);
+                    return tex;
+                case SpriteMaskMode.Off:
+                    alpha?.Dispose();
+                    return tex;
+                case SpriteMaskMode.MaskOnly:
+                    tex?.Dispose();
+                    return alpha;
+                case SpriteMaskMode.Export:
+                    tex.ApplyRGBMask(alpha);
+                    return tex;
             }
 
             return null;
@@ -169,29 +241,31 @@ namespace Arknights
             }
         }
 
-        private static Image<Bgra32> CutImage(Image<Bgra32> originalImage, Rectf textureRect, float downscaleMultiplier)
+        private static Image<Bgra32> CutImage(Image<Bgra32> originalImage, Rectf textureRect, float downscaleMultiplier, bool rotate = false)
         {
             if (originalImage != null)
             {
-                using (originalImage)
+                if (downscaleMultiplier > 0f && downscaleMultiplier != 1f)
                 {
-                    if (downscaleMultiplier > 0f && downscaleMultiplier != 1f)
-                    {
-                        var newSize = (Size)(originalImage.Size() / downscaleMultiplier);
-                        originalImage.Mutate(x => x.Resize(newSize, KnownResamplers.Lanczos3, compand: true));
-                    }
-                    var rectX = (int)Math.Floor(textureRect.x);
-                    var rectY = (int)Math.Floor(textureRect.y);
-                    var rectRight = (int)Math.Ceiling(textureRect.x + textureRect.width);
-                    var rectBottom = (int)Math.Ceiling(textureRect.y + textureRect.height);
-                    rectRight = Math.Min(rectRight, originalImage.Width);
-                    rectBottom = Math.Min(rectBottom, originalImage.Height);
-                    var rect = new Rectangle(rectX, rectY, rectRight - rectX, rectBottom - rectY);
-                    var spriteImage = originalImage.Clone(x => x.Crop(rect));
-                    spriteImage.Mutate(x => x.Flip(FlipMode.Vertical));
-
-                    return spriteImage;
+                    var newSize = (Size)(originalImage.Size() / downscaleMultiplier);
+                    originalImage.Mutate(x => x.Resize(newSize, KnownResamplers.Lanczos3, compand: true));
                 }
+                var rectX = (int)Math.Floor(textureRect.x);
+                var rectY = (int)Math.Floor(textureRect.y);
+                var rectRight = (int)Math.Ceiling(textureRect.x + textureRect.width);
+                var rectBottom = (int)Math.Ceiling(textureRect.y + textureRect.height);
+                rectRight = Math.Min(rectRight, originalImage.Width);
+                rectBottom = Math.Min(rectBottom, originalImage.Height);
+                var rect = new Rectangle(rectX, rectY, rectRight - rectX, rectBottom - rectY);
+                var spriteImage = originalImage.Clone(x => x.Crop(rect));
+                originalImage.Dispose();
+                if (rotate)
+                {
+                    spriteImage.Mutate(x => x.Rotate(RotateMode.Rotate270));
+                }
+                spriteImage.Mutate(x => x.Flip(FlipMode.Vertical));
+                
+                return spriteImage;
             }
 
             return null;

@@ -1,6 +1,6 @@
 ﻿using AssetStudio;
 
-namespace Arknights.AvgCharHub
+namespace Arknights.AvgCharHubMono
 {
     internal class AvgAssetIDs
     {

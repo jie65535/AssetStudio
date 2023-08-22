@@ -1,5 +1,6 @@
 ﻿using System.Windows.Forms;
 using AssetStudio;
+using Arknights;
 
 namespace AssetStudioGUI
 {
@@ -15,6 +16,7 @@ namespace AssetStudioGUI
         public string InfoText;
         public string UniqueID;
         public GameObjectTreeNode TreeNode;
+        public PortraitSprite AkPortraitSprite;
 
         public AssetItem(Object asset)
         {
@@ -24,6 +26,19 @@ namespace AssetStudioGUI
             TypeString = Type.ToString();
             m_PathID = asset.m_PathID;
             FullSize = asset.byteSize;
+        }
+
+        public AssetItem(PortraitSprite akPortraitSprite)
+        {
+            Asset = null;
+            SourceFile = akPortraitSprite.AssetsFile;
+            Container = akPortraitSprite.Container;
+            Type = akPortraitSprite.Type;
+            TypeString = Type.ToString();
+            Text = akPortraitSprite.Name;
+            m_PathID = -1;
+            FullSize = (long)(akPortraitSprite.TextureRect.width * akPortraitSprite.TextureRect.height * 4);
+            AkPortraitSprite = akPortraitSprite;
         }
 
         public void SetSubItems()
