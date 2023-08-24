@@ -1,4 +1,5 @@
-﻿using AssetStudio;
+﻿using Arknights;
+using AssetStudio;
 
 namespace AssetStudioCLI
 {
@@ -13,6 +14,7 @@ namespace AssetStudioCLI
         public ClassIDType Type;
         public string Text;
         public string UniqueID;
+        public PortraitSprite AkPortraitSprite;
 
         public AssetItem(Object asset)
         {
@@ -22,6 +24,18 @@ namespace AssetStudioCLI
             TypeString = Type.ToString();
             m_PathID = asset.m_PathID;
             FullSize = asset.byteSize;
+        }
+
+        public AssetItem(PortraitSprite akPortraitSprite)
+        {
+            Asset = null;
+            SourceFile = akPortraitSprite.AssetsFile;
+            Container = akPortraitSprite.Container;
+            Type = akPortraitSprite.Type;
+            TypeString = Type.ToString();
+            Text = akPortraitSprite.Name;
+            m_PathID = -1;
+            AkPortraitSprite = akPortraitSprite;
         }
     }
 }

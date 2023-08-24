@@ -7,6 +7,7 @@ using SixLabors.ImageSharp;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace AssetStudioCLI
 {
@@ -224,15 +225,16 @@ namespace AssetStudioCLI
                 {
                     alias = $"_{avgSprite.Alias}";
                 }
-            }
 
-            if (!CLIOptions.f_akOriginalAvgNames.Value)
-            {
-                if ((m_Sprite.m_Name.Length < 3 && m_Sprite.m_Name.All(char.IsDigit))  //not grouped ("spriteIndex")
-                    || (m_Sprite.m_Name.Length < 5 && m_Sprite.m_Name.Contains('$') && m_Sprite.m_Name.Split('$')[0].All(char.IsDigit)))  //grouped ("spriteIndex$groupIndex")
+                if (!CLIOptions.f_akOriginalAvgNames.Value)
                 {
-                    var fullName = Path.GetFileNameWithoutExtension(item.Container);
-                    item.Text = $"{fullName}#{m_Sprite.m_Name}";
+                    var groupedPattern = new Regex(@"^\d{1,2}\$\d{1,2}$");  // "spriteIndex$groupIndex"
+                    var notGroupedPattern = new Regex(@"^\d{1,2}$");  // "spriteIndex"
+                    if (groupedPattern.IsMatch(m_Sprite.m_Name) || notGroupedPattern.IsMatch(m_Sprite.m_Name))
+                    {
+                        var fullName = Path.GetFileNameWithoutExtension(item.Container);
+                        item.Text = $"{fullName}#{m_Sprite.m_Name}";
+                    }
                 }
             }
 
@@ -272,8 +274,36 @@ namespace AssetStudioCLI
             return false;
         }
 
+        public static bool ExportPortraitSprite(AssetItem item, string exportPath)
+        {
+            var type = CLIOptions.o_imageFormat.Value;
+            var spriteMaskMode = CLIOptions.o_akSpriteMaskMode.Value != AkSpriteMaskMode.None ? SpriteMaskMode.Export : SpriteMaskMode.Off;
+            if (!TryExportFile(exportPath, item, "." + type.ToString().ToLower(), out var exportFullPath))
+                return false;
+
+            var image = item.AkPortraitSprite.AkGetImage(spriteMaskMode: spriteMaskMode);
+            if (image != null)
+            {
+                using (image)
+                {
+                    using (var file = File.OpenWrite(exportFullPath))
+                    {
+                        image.WriteToStream(file, type);
+                    }
+                    Logger.Debug($"{item.TypeString}: \"{item.Text}\" exported to \"{exportFullPath}\"");
+                    return true;
+                }
+            }
+            return false;
+        }
+
         public static bool ExportRawFile(AssetItem item, string exportPath)
         {
+            if (item.Asset == null)
+            {
+                Logger.Warning($"Raw export is not supported for \"{item.Text}\" ({item.TypeString}) file");
+                return false;
+            }
             if (!TryExportFile(exportPath, item, ".dat", out var exportFullPath))
                 return false;
             File.WriteAllBytes(exportFullPath, item.Asset.GetRawData());
@@ -284,6 +314,11 @@ namespace AssetStudioCLI
 
         public static bool ExportDumpFile(AssetItem item, string exportPath)
         {
+            if (item.Asset == null)
+            {
+                Logger.Warning($"Dump is not supported for \"{item.Text}\" ({item.TypeString}) file");
+                return false;
+            }
             if (!TryExportFile(exportPath, item, ".txt", out var exportFullPath))
                 return false;
             var str = item.Asset.Dump();
@@ -439,6 +474,8 @@ namespace AssetStudioCLI
                     return ExportFont(item, exportPath);
                 case ClassIDType.Sprite:
                     return ExportSprite(item, exportPath);
+                case ClassIDType.AkPortraitSprite:
+                    return ExportPortraitSprite(item, exportPath);
                 case ClassIDType.Mesh:
                     return ExportMesh(item, exportPath);
                 default:

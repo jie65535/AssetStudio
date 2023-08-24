@@ -145,6 +145,15 @@ namespace AssetStudioCLI
                     if (containers.ContainsKey(asset.Asset))
                     {
                         asset.Container = containers[asset.Asset];
+
+                        if (asset.Type == ClassIDType.MonoBehaviour && asset.Container.Contains("/arts/charportraits/portraits"))
+                        {
+                            var portraitsList = Arknights.AkSpriteHelper.GeneratePortraits(asset);
+                            foreach (var portrait in portraitsList)
+                            {
+                                exportableAssetsList.Add(new AssetItem(portrait));
+                            }
+                        }
                     }
                 }
                 if (CLIOptions.o_workMode.Value != WorkMode.ExportLive2D)

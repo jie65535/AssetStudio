@@ -154,6 +154,7 @@ namespace AssetStudioCLI.Options
             {
                 ClassIDType.Texture2D,
                 ClassIDType.Sprite,
+                ClassIDType.AkPortraitSprite,
                 ClassIDType.TextAsset,
                 ClassIDType.MonoBehaviour,
                 ClassIDType.Font,
@@ -184,8 +185,8 @@ namespace AssetStudioCLI.Options
                 optionDefaultValue: supportedAssetTypes,
                 optionName: "-t, --asset-type <value(s)>",
                 optionDescription: "Specify asset type(s) to export\n" +
-                    "<Value(s): tex2d, sprite, textAsset, monoBehaviour, font, shader, movieTexture,\n" +
-                    "audio, video, mesh | all(default)>\n" +
+                    "<Value(s): tex2d, sprite, akPortrait, textAsset, monoBehaviour, font, shader,\n" +
+                    "movieTexture, audio, video, mesh | all(default)>\n" +
                     "All - export all asset types, which are listed in the values\n" +
                     "*To specify multiple asset types, write them separated by ',' or ';' without spaces\n" +
                     "Examples: \"-t sprite\" or \"-t tex2d,sprite,audio\" or \"-t tex2d;sprite;font\"\n",
@@ -531,6 +532,9 @@ namespace AssetStudioCLI.Options
                                         break;
                                     case "sprite":
                                         o_exportAssetTypes.Value.Add(ClassIDType.Sprite);
+                                        break;
+                                    case "akportrait":
+                                        o_exportAssetTypes.Value.Add(ClassIDType.AkPortraitSprite);
                                         break;
                                     case "textasset":
                                         o_exportAssetTypes.Value.Add(ClassIDType.TextAsset);
@@ -959,10 +963,10 @@ namespace AssetStudioCLI.Options
                     sb.AppendLine($"# Asset Group Option: {o_groupAssetsBy}");
                     sb.AppendLine($"# Export Image Format: {o_imageFormat}");
                     sb.AppendLine($"# Export Audio Format: {o_audioFormat}");
-                    sb.AppendLine($"# [Arkingths] Sprite Mode: {o_akSpriteMaskMode}");
+                    sb.AppendLine($"# [Arkingths] Sprite Mask Mode: {o_akSpriteMaskMode}");
                     sb.AppendLine($"# [Arknights] Mask Resampler: {resamplerName}");
                     sb.AppendLine($"# [Arknights] Mask Gamma Correction: {o_akAlphaMaskGamma.Value * 10:+#;-#;0}%");
-                    sb.AppendLine($"# [Arknights] Original Avg Names: {f_akOriginalAvgNames}");
+                    sb.AppendLine($"# [Arknights] Don't Fix Avg Names: {f_akOriginalAvgNames}");
                     sb.AppendLine($"# [Arknights] Add Aliases: {f_akAddAliases}");
                     sb.AppendLine($"# Log Level: {o_logLevel}");
                     sb.AppendLine($"# Log Output: {o_logOutput}");

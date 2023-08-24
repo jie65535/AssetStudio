@@ -1,4 +1,4 @@
-﻿using Arknights.AvgCharHub;
+﻿using Arknights.AvgCharHubMono;
 using AssetStudio;
 using AssetStudioCLI;
 using SixLabors.ImageSharp;

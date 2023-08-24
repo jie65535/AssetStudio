@@ -37,7 +37,7 @@ namespace AssetStudio
             {
                 filteredAssetTypesList.Add(ClassIDType.MonoScript);
             }
-            if (classIDTypes.Contains(ClassIDType.Sprite))
+            if (classIDTypes.Contains(ClassIDType.Sprite) || classIDTypes.Contains(ClassIDType.AkPortraitSprite))
             {
                 filteredAssetTypesList.UnionWith(new HashSet<ClassIDType>
                 {
