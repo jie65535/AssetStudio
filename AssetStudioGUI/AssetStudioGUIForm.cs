@@ -1,7 +1,6 @@
 ﻿using Arknights;
 using AssetStudio;
 using Newtonsoft.Json;
-using OpenTK;
 using OpenTK.Graphics.OpenGL;
 using System;
 using System.Collections.Generic;
@@ -24,6 +23,7 @@ using SharpImage = SixLabors.ImageSharp;
 using SharpImageFormat = SixLabors.ImageSharp.PixelFormats;
 using Microsoft.WindowsAPICodePack.Taskbar;
 #if NET472
+using OpenTK;
 using Vector3 = OpenTK.Vector3;
 using Vector4 = OpenTK.Vector4;
 #else
@@ -1046,7 +1046,7 @@ namespace AssetStudioGUI
             var sb = new StringBuilder();
             sb.AppendLine($"Width: {m_VideoClip.Width}");
             sb.AppendLine($"Height: {m_VideoClip.Height}");
-            sb.AppendLine($"Frame rate: {m_VideoClip.m_FrameRate}");
+            sb.AppendLine($"Frame rate: {m_VideoClip.m_FrameRate:.0##}");
             sb.AppendLine($"Split alpha: {m_VideoClip.m_HasSplitAlpha}");
             assetItem.InfoText = sb.ToString();
             
