@@ -148,11 +148,11 @@ namespace Arknights
                 bool resized = false;
                 if (tex.Width != texMask.Width || tex.Height != texMask.Height)
                 {
-                    texMask.Mutate(x => x.Resize(tex.Width, tex.Height, CLIOptions.o_akAlphaMaskResampler.Value));
+                    texMask.Mutate(x => x.Resize(tex.Width, tex.Height, CLIOptions.o_akAlphaTexResampler.Value));
                     resized = true;
                 }
 
-                var invGamma = 1.0 / (1.0 + CLIOptions.o_akAlphaMaskGamma.Value / 10.0);
+                var invGamma = 1.0 / (1.0 + CLIOptions.o_akShadowGamma.Value / 10.0);
                 if (CLIOptions.akResizedOnly && !resized)
                 {
                     invGamma = 1.0;

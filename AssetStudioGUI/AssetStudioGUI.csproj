@@ -5,9 +5,9 @@
         <TargetFrameworks>net472;net6.0-windows;net7.0-windows</TargetFrameworks>
         <UseWindowsForms>true</UseWindowsForms>
         <ApplicationIcon>Resources\as.ico</ApplicationIcon>
-        <AssemblyTitle>AssetStudioMod by aelurum</AssemblyTitle>
-        <AssemblyName>AssetStudioModGUI</AssemblyName>
-        <Version>0.17.2.0</Version>
+        <AssemblyTitle>ArknightsStudio by aelurum</AssemblyTitle>
+        <AssemblyName>ArknightsStudioGUI</AssemblyName>
+        <Version>1.0.0</Version>
         <Copyright>Copyright © Perfare 2018-2022; Copyright © aelurum 2021-2023</Copyright>
         <DebugType>embedded</DebugType>
     </PropertyGroup>

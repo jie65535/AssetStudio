@@ -35,9 +35,9 @@ namespace AssetStudioCLI
                 if (Studio.LoadAssets())
                 {
                     Studio.ParseAssets();
-                    if (CLIOptions.filterBy != FilterBy.None && CLIOptions.o_workMode.Value != WorkMode.ExportLive2D)
+                    if (CLIOptions.filterBy != FilterBy.None)
                     {
-                        Studio.FilterAssets();
+                        Studio.Filter();
                     }
                     if (CLIOptions.o_exportAssetList.Value != ExportListType.None)
                     {
@@ -50,6 +50,9 @@ namespace AssetStudioCLI
                             break;
                         case WorkMode.ExportLive2D:
                             Studio.ExportLive2D();
+                            break;
+                        case WorkMode.SplitObjects:
+                            Studio.ExportSplitObjects();
                             break;
                         default:
                             Studio.ExportAssets();

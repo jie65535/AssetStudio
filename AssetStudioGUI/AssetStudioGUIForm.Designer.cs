@@ -293,7 +293,7 @@
             this.akTitleMenuItem.Name = "akTitleMenuItem";
             this.akTitleMenuItem.ShowShortcutKeys = false;
             this.akTitleMenuItem.Size = new System.Drawing.Size(265, 22);
-            this.akTitleMenuItem.Text = "Arknighs";
+            this.akTitleMenuItem.Text = "Arknights";
             // 
             // akFixFaceSpriteNamesToolStripMenuItem
             // 
@@ -302,7 +302,7 @@
             this.akFixFaceSpriteNamesToolStripMenuItem.CheckState = System.Windows.Forms.CheckState.Checked;
             this.akFixFaceSpriteNamesToolStripMenuItem.Name = "akFixFaceSpriteNamesToolStripMenuItem";
             this.akFixFaceSpriteNamesToolStripMenuItem.Size = new System.Drawing.Size(265, 22);
-            this.akFixFaceSpriteNamesToolStripMenuItem.Text = "Fix names of avg face sprites";
+            this.akFixFaceSpriteNamesToolStripMenuItem.Text = "Fix names of avg character sprites";
             this.akFixFaceSpriteNamesToolStripMenuItem.ToolTipText = "Rename face sprites with numeric names to correct ones";
             this.akFixFaceSpriteNamesToolStripMenuItem.CheckedChanged += new System.EventHandler(this.akFixFaceSpriteNamesToolStripMenuItem_Check);
             // 

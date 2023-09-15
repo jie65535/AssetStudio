@@ -512,9 +512,9 @@
             this.akResamplerLabel.AutoSize = true;
             this.akResamplerLabel.Location = new System.Drawing.Point(6, 21);
             this.akResamplerLabel.Name = "akResamplerLabel";
-            this.akResamplerLabel.Size = new System.Drawing.Size(113, 13);
+            this.akResamplerLabel.Size = new System.Drawing.Size(120, 13);
             this.akResamplerLabel.TabIndex = 5;
-            this.akResamplerLabel.Text = "Alpha mask resampler:";
+            this.akResamplerLabel.Text = "Alpha texture resampler:";
             this.exportUvsTooltip.SetToolTip(this.akResamplerLabel, "Only affects exported images");
             // 
             // akResamplerComboBox
@@ -528,9 +528,9 @@
             "Mitchell-Netravali",
             "Spline",
             "Welch"});
-            this.akResamplerComboBox.Location = new System.Drawing.Point(125, 18);
+            this.akResamplerComboBox.Location = new System.Drawing.Point(132, 18);
             this.akResamplerComboBox.Name = "akResamplerComboBox";
-            this.akResamplerComboBox.Size = new System.Drawing.Size(169, 21);
+            this.akResamplerComboBox.Size = new System.Drawing.Size(162, 21);
             this.akResamplerComboBox.TabIndex = 4;
             this.exportUvsTooltip.SetToolTip(this.akResamplerComboBox, "Only affects exported images");
             // 
@@ -549,7 +549,7 @@
             this.akSpritesAlphaGroupBox.Size = new System.Drawing.Size(300, 178);
             this.akSpritesAlphaGroupBox.TabIndex = 12;
             this.akSpritesAlphaGroupBox.TabStop = false;
-            this.akSpritesAlphaGroupBox.Text = "Sprites: Alpha Mask [Arknights]";
+            this.akSpritesAlphaGroupBox.Text = "Sprites: Alpha Texture [Arknights]";
             // 
             // akGammaNoteLabel
             // 
@@ -567,9 +567,9 @@
             this.akResamplerDescLabel.ForeColor = System.Drawing.SystemColors.GrayText;
             this.akResamplerDescLabel.Location = new System.Drawing.Point(6, 43);
             this.akResamplerDescLabel.Name = "akResamplerDescLabel";
-            this.akResamplerDescLabel.Size = new System.Drawing.Size(244, 13);
+            this.akResamplerDescLabel.Size = new System.Drawing.Size(251, 13);
             this.akResamplerDescLabel.TabIndex = 6;
-            this.akResamplerDescLabel.Text = "Alpha mask upscale method for 2048x2048 sprites";
+            this.akResamplerDescLabel.Text = "Alpha texture upscale method for 2048x2048 sprites";
             // 
             // akResizedOnlyCheckBox
             // 
@@ -597,9 +597,9 @@
             this.akGammaLabel.AutoSize = true;
             this.akGammaLabel.Location = new System.Drawing.Point(6, 86);
             this.akGammaLabel.Name = "akGammaLabel";
-            this.akGammaLabel.Size = new System.Drawing.Size(102, 13);
+            this.akGammaLabel.Size = new System.Drawing.Size(86, 13);
             this.akGammaLabel.TabIndex = 1;
-            this.akGammaLabel.Text = "Alpha mask gamma:";
+            this.akGammaLabel.Text = "Shadow gamma:";
             // 
             // akAlphaMaskGammaTrackBar
             // 
@@ -627,9 +627,9 @@
             this.akAddAliasesCheckBox.AutoSize = true;
             this.akAddAliasesCheckBox.Location = new System.Drawing.Point(6, 28);
             this.akAddAliasesCheckBox.Name = "akAddAliasesCheckBox";
-            this.akAddAliasesCheckBox.Size = new System.Drawing.Size(213, 17);
+            this.akAddAliasesCheckBox.Size = new System.Drawing.Size(261, 17);
             this.akAddAliasesCheckBox.TabIndex = 0;
-            this.akAddAliasesCheckBox.Text = "Add aliases to avg sprite names (if exist)";
+            this.akAddAliasesCheckBox.Text = "Add aliases to avg character sprite names (if exist)";
             this.akAddAliasesCheckBox.UseVisualStyleBackColor = true;
             // 
             // ExportOptions

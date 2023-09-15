@@ -49,7 +49,7 @@
             this.label7 = new System.Windows.Forms.Label();
             this.modVersionLabel = new System.Windows.Forms.Label();
             this.label4 = new System.Windows.Forms.Label();
-            this.label8 = new System.Windows.Forms.Label();
+            this.basedOnLabel = new System.Windows.Forms.Label();
             this.checkUpdatesLinkLabel = new System.Windows.Forms.LinkLabel();
             this.tabPage2 = new System.Windows.Forms.TabPage();
             this.licenseRichTextBox = new System.Windows.Forms.RichTextBox();
@@ -116,8 +116,7 @@
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(347, 46);
             this.label2.TabIndex = 0;
-            this.label2.Text = "AssetStudio is a tool for exploring, extracting, and exporting assets and asset b" +
-    "undles.";
+            this.label2.Text = "ArknightsStudio is a modified version of AssetStudio designed for Arknights.";
             this.label2.UseCompatibleTextRendering = true;
             // 
             // textBox2
@@ -164,7 +163,7 @@
             this.tableLayoutPanel2.ColumnCount = 3;
             this.tableLayoutPanel2.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 41.37931F));
             this.tableLayoutPanel2.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 58.62069F));
-            this.tableLayoutPanel2.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 111F));
+            this.tableLayoutPanel2.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 113F));
             this.tableLayoutPanel2.Controls.Add(this.label16, 0, 0);
             this.tableLayoutPanel2.Controls.Add(this.label17, 1, 0);
             this.tableLayoutPanel2.Controls.Add(this.gitPerfareLinkLabel, 2, 0);
@@ -194,7 +193,7 @@
             // 
             this.label17.AutoSize = true;
             this.label17.BackColor = System.Drawing.Color.Transparent;
-            this.label17.Location = new System.Drawing.Point(102, 2);
+            this.label17.Location = new System.Drawing.Point(101, 2);
             this.label17.Name = "label17";
             this.label17.Size = new System.Drawing.Size(110, 13);
             this.label17.TabIndex = 10;
@@ -204,7 +203,7 @@
             // 
             this.gitPerfareLinkLabel.AutoSize = true;
             this.gitPerfareLinkLabel.BackColor = System.Drawing.Color.Transparent;
-            this.gitPerfareLinkLabel.Location = new System.Drawing.Point(239, 2);
+            this.gitPerfareLinkLabel.Location = new System.Drawing.Point(237, 2);
             this.gitPerfareLinkLabel.Name = "gitPerfareLinkLabel";
             this.gitPerfareLinkLabel.Size = new System.Drawing.Size(67, 13);
             this.gitPerfareLinkLabel.TabIndex = 11;
@@ -226,7 +225,7 @@
             // 
             this.label19.AutoSize = true;
             this.label19.BackColor = System.Drawing.Color.Transparent;
-            this.label19.Location = new System.Drawing.Point(102, 20);
+            this.label19.Location = new System.Drawing.Point(101, 20);
             this.label19.Name = "label19";
             this.label19.Size = new System.Drawing.Size(113, 13);
             this.label19.TabIndex = 13;
@@ -236,7 +235,7 @@
             // 
             this.gitAelurumLinkLabel.AutoSize = true;
             this.gitAelurumLinkLabel.BackColor = System.Drawing.Color.Transparent;
-            this.gitAelurumLinkLabel.Location = new System.Drawing.Point(239, 20);
+            this.gitAelurumLinkLabel.Location = new System.Drawing.Point(237, 20);
             this.gitAelurumLinkLabel.Name = "gitAelurumLinkLabel";
             this.gitAelurumLinkLabel.Size = new System.Drawing.Size(67, 13);
             this.gitAelurumLinkLabel.TabIndex = 14;
@@ -250,13 +249,13 @@
             this.tableLayoutPanel1.ColumnCount = 3;
             this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 41.37931F));
             this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 58.62069F));
-            this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 111F));
+            this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 113F));
             this.tableLayoutPanel1.Controls.Add(this.label5, 0, 0);
             this.tableLayoutPanel1.Controls.Add(this.productNamelabel, 1, 0);
             this.tableLayoutPanel1.Controls.Add(this.label7, 0, 1);
             this.tableLayoutPanel1.Controls.Add(this.modVersionLabel, 1, 1);
             this.tableLayoutPanel1.Controls.Add(this.label4, 0, 2);
-            this.tableLayoutPanel1.Controls.Add(this.label8, 1, 2);
+            this.tableLayoutPanel1.Controls.Add(this.basedOnLabel, 1, 2);
             this.tableLayoutPanel1.Controls.Add(this.checkUpdatesLinkLabel, 2, 1);
             this.tableLayoutPanel1.Location = new System.Drawing.Point(6, 80);
             this.tableLayoutPanel1.Name = "tableLayoutPanel1";
@@ -285,11 +284,11 @@
             // 
             this.productNamelabel.AutoSize = true;
             this.productNamelabel.BackColor = System.Drawing.Color.Transparent;
-            this.productNamelabel.Location = new System.Drawing.Point(102, 2);
+            this.productNamelabel.Location = new System.Drawing.Point(101, 2);
             this.productNamelabel.Name = "productNamelabel";
-            this.productNamelabel.Size = new System.Drawing.Size(103, 13);
+            this.productNamelabel.Size = new System.Drawing.Size(100, 13);
             this.productNamelabel.TabIndex = 1;
-            this.productNamelabel.Text = "AssetStudioModGUI";
+            this.productNamelabel.Text = "ArknightsStudioGUI";
             // 
             // label7
             // 
@@ -297,16 +296,16 @@
             this.label7.BackColor = System.Drawing.Color.Transparent;
             this.label7.Location = new System.Drawing.Point(5, 20);
             this.label7.Name = "label7";
-            this.label7.Size = new System.Drawing.Size(68, 13);
+            this.label7.Size = new System.Drawing.Size(45, 13);
             this.label7.TabIndex = 2;
-            this.label7.Text = "Mod version:";
+            this.label7.Text = "Version:";
             // 
             // modVersionLabel
             // 
             this.modVersionLabel.AutoSize = true;
             this.modVersionLabel.BackColor = System.Drawing.Color.Transparent;
             this.modVersionLabel.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.modVersionLabel.Location = new System.Drawing.Point(102, 20);
+            this.modVersionLabel.Location = new System.Drawing.Point(101, 20);
             this.modVersionLabel.Name = "modVersionLabel";
             this.modVersionLabel.Size = new System.Drawing.Size(52, 13);
             this.modVersionLabel.TabIndex = 3;
@@ -323,21 +322,21 @@
             this.label4.TabIndex = 4;
             this.label4.Text = "Based on:";
             // 
-            // label8
+            // basedOnLabel
             // 
-            this.label8.AutoSize = true;
-            this.label8.BackColor = System.Drawing.Color.Transparent;
-            this.label8.Location = new System.Drawing.Point(102, 38);
-            this.label8.Name = "label8";
-            this.label8.Size = new System.Drawing.Size(108, 13);
-            this.label8.TabIndex = 5;
-            this.label8.Text = "AssetStudio v0.16.47";
+            this.basedOnLabel.AutoSize = true;
+            this.basedOnLabel.BackColor = System.Drawing.Color.Transparent;
+            this.basedOnLabel.Location = new System.Drawing.Point(101, 38);
+            this.basedOnLabel.Name = "basedOnLabel";
+            this.basedOnLabel.Size = new System.Drawing.Size(123, 13);
+            this.basedOnLabel.TabIndex = 5;
+            this.basedOnLabel.Text = "AssetStudioMod v0.17.0";
             // 
             // checkUpdatesLinkLabel
             // 
             this.checkUpdatesLinkLabel.AutoSize = true;
             this.checkUpdatesLinkLabel.BackColor = System.Drawing.Color.Transparent;
-            this.checkUpdatesLinkLabel.Location = new System.Drawing.Point(239, 20);
+            this.checkUpdatesLinkLabel.Location = new System.Drawing.Point(237, 20);
             this.checkUpdatesLinkLabel.Name = "checkUpdatesLinkLabel";
             this.checkUpdatesLinkLabel.Size = new System.Drawing.Size(96, 13);
             this.checkUpdatesLinkLabel.TabIndex = 6;
@@ -391,7 +390,7 @@
             this.productTitleLabel.Name = "productTitleLabel";
             this.productTitleLabel.Size = new System.Drawing.Size(384, 30);
             this.productTitleLabel.TabIndex = 1;
-            this.productTitleLabel.Text = "AssetStudioModGUI";
+            this.productTitleLabel.Text = "ArknightsStudioGUI";
             this.productTitleLabel.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
             // CloseButton
@@ -492,7 +491,7 @@
         private System.Windows.Forms.Label label7;
         private System.Windows.Forms.Label modVersionLabel;
         private System.Windows.Forms.Label label4;
-        private System.Windows.Forms.Label label8;
+        private System.Windows.Forms.Label basedOnLabel;
         private System.Windows.Forms.LinkLabel checkUpdatesLinkLabel;
         private System.Windows.Forms.RichTextBox licenseRichTextBox;
         private System.Windows.Forms.TextBox textBox2;

@@ -17,6 +17,7 @@ namespace AssetStudioGUI
             productVersionLabel.Text = $"v{Application.ProductVersion} [{arch}]";
             productNamelabel.Text = productName;
             modVersionLabel.Text = Application.ProductVersion;
+            basedOnLabel.Text = "AssetStudioMod v0.17.3";
 
             licenseRichTextBox.Text = GetLicenseText();
         }
@@ -41,7 +42,7 @@ namespace AssetStudioGUI
 
         private void checkUpdatesLinkLabel_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
-            var ps = new ProcessStartInfo("https://github.com/aelurum/AssetStudio/releases")
+            var ps = new ProcessStartInfo("https://github.com/aelurum/AssetStudio/tags")
             {
                 UseShellExecute = true
             };

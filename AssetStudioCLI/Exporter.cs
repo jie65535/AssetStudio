@@ -4,6 +4,7 @@ using AssetStudioCLI.Options;
 using Newtonsoft.Json;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -243,7 +244,7 @@ namespace AssetStudioCLI
             var alias = "";
             var m_Sprite = (Sprite)item.Asset;
             var type = CLIOptions.o_imageFormat.Value;
-            var spriteMaskMode = CLIOptions.o_akSpriteMaskMode.Value != AkSpriteMaskMode.None ? SpriteMaskMode.Export : SpriteMaskMode.Off;
+            var spriteMaskMode = CLIOptions.o_akSpriteAlphaMode.Value != AkSpriteAlphaMode.None ? SpriteMaskMode.Export : SpriteMaskMode.Off;
             var isCharAvgSprite = item.Container.Contains("avg/characters");
             var isCharArt = item.Container.Contains("arts/characters");
 
@@ -271,7 +272,7 @@ namespace AssetStudioCLI
             if (!TryExportFile(exportPath, item, "." + type.ToString().ToLower(), out var exportFullPath, alias))
                 return false;
 
-            if (CLIOptions.o_akSpriteMaskMode.Value == AkSpriteMaskMode.External && (isCharAvgSprite || isCharArt))
+            if (CLIOptions.o_akSpriteAlphaMode.Value == AkSpriteAlphaMode.SearchExternal && (isCharAvgSprite || isCharArt))
             {
                 if (m_Sprite.m_RD.alphaTexture.IsNull)
                 {
@@ -307,7 +308,7 @@ namespace AssetStudioCLI
         public static bool ExportPortraitSprite(AssetItem item, string exportPath)
         {
             var type = CLIOptions.o_imageFormat.Value;
-            var spriteMaskMode = CLIOptions.o_akSpriteMaskMode.Value != AkSpriteMaskMode.None ? SpriteMaskMode.Export : SpriteMaskMode.Off;
+            var spriteMaskMode = CLIOptions.o_akSpriteAlphaMode.Value != AkSpriteAlphaMode.None ? SpriteMaskMode.Export : SpriteMaskMode.Off;
             if (!TryExportFile(exportPath, item, "." + type.ToString().ToLower(), out var exportFullPath))
                 return false;
 
@@ -340,6 +341,33 @@ namespace AssetStudioCLI
 
             Logger.Debug($"{item.TypeString} \"{item.Text}\" exported to \"{exportFullPath}\"");
             return true;
+        }
+
+        public static void ExportGameObject(GameObject gameObject, string exportPath, List<AssetItem> animationList = null)
+        {
+            var convert = animationList != null
+                ? new ModelConverter(gameObject, CLIOptions.o_imageFormat.Value, animationList.Select(x => (AnimationClip)x.Asset).ToArray())
+                : new ModelConverter(gameObject, CLIOptions.o_imageFormat.Value);
+            exportPath = exportPath + FixFileName(gameObject.m_Name) + ".fbx";
+            ExportFbx(convert, exportPath);
+        }
+
+        private static void ExportFbx(IImported convert, string exportPath)
+        {
+            var eulerFilter = true;
+            var filterPrecision = (float)0.25f;
+            var exportAllNodes = true;
+            var exportSkins = true;
+            var exportAnimations = true;
+            var exportBlendShape = true;
+            var castToBone = false;
+            var boneSize = CLIOptions.o_fbxBoneSize.Value;
+            var exportAllUvsAsDiffuseMaps = false;
+            var scaleFactor = CLIOptions.o_fbxScaleFactor.Value;
+            var fbxVersion = 3;
+            var fbxFormat = 0;
+            ModelExporter.ExportFbx(exportPath, convert, eulerFilter, filterPrecision,
+                exportAllNodes, exportSkins, exportAnimations, exportBlendShape, castToBone, boneSize, exportAllUvsAsDiffuseMaps, scaleFactor, fbxVersion, fbxFormat == 1);
         }
 
         public static bool ExportDumpFile(AssetItem item, string exportPath)
