@@ -1,34 +1,39 @@
-## AssetStudioModCLI
-CLI version of AssetStudioMod.
-- Supported asset types: `Texture2D`, `Sprite`, `TextAsset`, `MonoBehaviour`, `Font`, `Shader`, `MovieTexture`, `AudioClip`, `VideoClip`, `Mesh`.
+## ArknightsStudioCLI
+CLI version of ArknightsStudio.
+- Supported asset types for export: `Texture2D`, `Sprite`, `AkPortraitSprite`, `TextAsset`, `MonoBehaviour`, `Font`, `Shader`, `MovieTexture`, `AudioClip`, `VideoClip`, `Mesh`.
 - *There are no plans to add support for `AnimationClip`, `Animator` for now.*
 
 ### Usage
 ```
-AssetStudioModCLI <input path to asset file/folder> [-m, --mode <value>]
+ArknightsStudioCLI <input path to asset file/folder> [-m, --mode <value>]
                       [-t, --asset-type <value(s)>] [-g, --group-option <value>]
                       [-o, --output <path>] [-h, --help]
                       [--log-level <value>] [--log-output <value>]
                       [--image-format <value>] [--audio-format <value>]
-                      [--export-asset-list <value>] [--filter-by-name <text>]
-                      [--filter-by-container <text>] [--filter-by-pathid <text>]
-                      [--filter-by-text <text>] [--assembly-folder <path>]
-                      [--unity-version <text>] [--not-restore-extension]
+                      [--fbx-scale-factor <value>] [--fbx-bone-size <value>]
+                      [--filter-by-name <text>] [--filter-by-container <text>]
+                      [--filter-by-pathid <text>] [--filter-by-text <text>]
+                      [--spritealpha-mode <value>] [--alphatex-resampler <value>]
+                      [--shadow-gamma <value>] [--original-avg-names]
+                      [--add-aliases] [--export-asset-list <value>]
+                      [--assembly-folder <path>] [--unity-version <text>]
+                      [--not-restore-extension] [--load-all]
 
 
 General Options:
   -m, --mode <value>            Specify working mode
-                                <Value: export(default) | exportRaw | dump | info | live2d>
+                                <Value: export(default) | exportRaw | dump | info | live2d | splitObjects>
                                 Export - Exports converted assets
                                 ExportRaw - Exports raw data
                                 Dump - Makes asset dumps
                                 Info - Loads file(s), shows the number of available for export assets and exits
                                 Live2D - Exports Live2D Cubism 3 models
+                                SplitObjects - Exports split objects (fbx)
                                 Example: "-m info"
 
   -t, --asset-type <value(s)>   Specify asset type(s) to export
-                                <Value(s): tex2d, sprite, textAsset, monoBehaviour, font, shader, movieTexture,
-                                audio, video, mesh | all(default)>
+                                <Value(s): tex2d, sprite, akPortrait, textAsset, monoBehaviour, font, shader,
+                                movieTexture, audio, video, mesh | all(default)>
                                 All - export all asset types, which are listed in the values
                                 *To specify multiple asset types, write them separated by ',' or ';' without spaces
                                 Examples: "-t sprite" or "-t tex2d,sprite,audio" or "-t tex2d;sprite;font"
@@ -67,12 +72,16 @@ Convert Options:
                                 None - Do not convert audios and export them in their own format
                                 Example: "--audio-format wav"
 
-Advanced Options:
-  --export-asset-list <value>   Specify the format in which you want to export asset list
-                                <Value: none(default) | xml>
-                                None - Do not export asset list
-                                Example: "--export-asset-list xml"
+FBX Options:
+  --fbx-scale-factor <value>    Specify the FBX Scale Factor
+                                <Value: float number from 0 to 100 (default=1)
+                                Example: "--fbx-scale-factor 50"
 
+  --fbx-bone-size <value>       Specify the FBX Bone Size
+                                <Value: integer number from 0 to 100 (default=10)
+                                Example: "--fbx-bone-size 10"
+
+Filter Options:
   --filter-by-name <text>       Specify the name by which assets should be filtered
                                 *To specify multiple names write them separated by ',' or ';' without spaces
                                 Example: "--filter-by-name char" or "--filter-by-name char,bg"
@@ -90,8 +99,49 @@ Advanced Options:
                                 *To specify multiple values write them separated by ',' or ';' without spaces
                                 Example: "--filter-by-text portrait" or "--filter-by-text portrait,art"
 
+
+Arknights Options:
+  --spritealpha-mode <value>    Specify the mode in which you want to export sprites with alpha texture
+                                <Value: none | internalOnly | searchExternal(default)>
+                                None - Export sprites without alpha texture applied
+                                InternalOnly - Export sprites with internal alpha texture applied (if exist)
+                                SearchExternal - Export sprites with internal alpha texture applied,
+                                and in case it doesn't exist, Studio will try to find an external alpha texture
+                                Example: "--spritealpha-mode internalOnly"
+
+  --alphatex-resampler <value>  Specify the alpha texture upscale algorithm for 2048x2048 sprites
+                                <Value: nearest | bilinear | bicubic | mitchell(default) | spline | welch>
+                                Mitchell - Mitchell Netravali algorithm. Yields good equilibrium between
+                                sharpness and smoothness (produces less artifacts than bicubic in the current use case)
+                                Spline - Similar to Mitchell Netravali but yielding smoother results
+                                Welch - A high speed algorithm that delivers very sharpened results
+                                Example: "--alphatex-resampler bicubic"
+
+  --shadow-gamma <value>        Specify the gamma correction of semi-transparent shadow for 2048x2048 sprites
+                                <Value: integer number from -5 to 5 (default=2)>
+                                <0 - Make the shadow darker
+                                0 - Do not change the brightness of the shadow
+                                >0 - Make the shadow lighter
+                                Example: "--shadow-gamma 0"
+
+  --original-avg-names          (Flag) If specified, names of avg character sprites will not be fixed
+
+  --add-aliases                 (Flag) If specified, aliases will be added to avg character sprite names (if exist)
+
+Advanced Options:
+  --export-asset-list <value>   Specify the format in which you want to export asset list
+                                <Value: none(default) | xml>
+                                None - Do not export asset list
+                                Example: "--export-asset-list xml"
+
   --assembly-folder <path>      Specify the path to the assembly folder
-  --unity-version <text>        Specify Unity version. Example: "--unity-version 2017.4.39f1"
-  --not-restore-extension       (Flag) If specified, AssetStudio will not try to use/restore original TextAsset
+
+  --unity-version <text>        Specify Unity version
+                                Example: "--unity-version 2017.4.39f1"
+
+  --not-restore-extension       (Flag) If specified, Studio will not try to use/restore original TextAsset
                                 extension name, and will just export all TextAssets with the ".txt" extension
+
+  --load-all                    (Flag) If specified, Studio will load assets of all types
+                                (Only for Dump, Info and ExportRaw modes)
 ```
