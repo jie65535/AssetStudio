@@ -35,7 +35,7 @@ namespace Arknights
                     {
                         if (item.Container.Contains(imgType) && item.Container.Contains($"illust_{m_Sprite.m_Name}_material") && item.Text.Contains("[alpha]"))
                             return (Texture2D)item.Asset;
-                        else if (item.Container.Contains(imgType) && item.Container.Contains(spriteFullName) && item.Text == $"{m_Sprite.m_Name}[alpha]")
+                        if (item.Container.Contains(imgType) && item.Container.Contains(spriteFullName) && item.Text == $"{m_Sprite.m_Name}[alpha]")
                             return (Texture2D)item.Asset;
                     }
                 }
@@ -81,6 +81,23 @@ namespace Arknights
                 }
 
                 return ImageRender(tex, alphaTex, spriteMaskMode);
+            }
+            else if (m_Sprite.m_RD.texture.TryGet(out m_Texture2D) && avgSprite != null && avgSprite.IsHubParsed)
+            {
+                if (!avgSprite.IsFaceSprite)
+                {
+                    return m_Texture2D.ConvertToImage(true);
+                }
+
+                var faceImage = m_Texture2D.ConvertToImage(true);
+                var tex = avgSprite.FullTexture.ConvertToImage(true);
+                if (faceImage.Size() != avgSprite.FaceSize)
+                {
+                    faceImage.Mutate(x => x.Resize(new ResizeOptions {Size = avgSprite.FaceSize, Sampler = KnownResamplers.Lanczos3, Mode = ResizeMode.Stretch}));
+                }
+                tex.Mutate(x => x.DrawImage(faceImage, location: avgSprite.FacePos, opacity: 1f));
+
+                return tex;
             }
             else if (m_Sprite.m_RD.texture.TryGet(out m_Texture2D))
             {

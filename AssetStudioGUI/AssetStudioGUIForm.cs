@@ -1284,12 +1284,10 @@ namespace AssetStudioGUI
 
             bool isCharAvgSprite = assetItem.Container.Contains("avg/characters");
             bool isCharArt = assetItem.Container.Contains("arts/characters");
-            if (isCharAvgSprite)
-            {
-                avgSprite = new AvgSprite(assetItem);
-            }
             if (akUseExternalAlphaToolStripMenuItem.Checked && (isCharAvgSprite || isCharArt))
             {
+                avgSprite = isCharAvgSprite ? new AvgSprite(assetItem) : null; 
+
                 if (m_Sprite.m_RD.alphaTexture.IsNull)
                 {
                     var charAlphaTex = AkSpriteHelper.TryFindAlphaTex(assetItem, avgSprite, isCharAvgSprite);

@@ -103,14 +103,14 @@ namespace Arknights
                     else
                     {
                         var faceAlphaID = curSpriteData.AlphaTex.m_PathID;
-                        FaceSpriteAlphaTexture = (Texture2D)Studio.loadedAssetsList.Find(x => x.m_PathID == faceAlphaID).Asset;
+                        FaceSpriteAlphaTexture = (Texture2D)Studio.loadedAssetsList.Find(x => x.m_PathID == faceAlphaID)?.Asset;
                     }
                     var fullTexSpriteID = fullTexSpriteData.Sprite.m_PathID;
                     var fullTexAlphaID = fullTexSpriteData.AlphaTex.m_PathID;
                     var fullTexSprite = (Sprite)Studio.loadedAssetsList.Find(x => x.m_PathID == fullTexSpriteID).Asset;
 
                     FullTexture = fullTexSprite.m_RD.texture.TryGet(out var fullTex) ? fullTex : null;
-                    FullAlphaTexture = (Texture2D)Studio.loadedAssetsList.Find(x => x.m_PathID == fullTexAlphaID).Asset;
+                    FullAlphaTexture = (Texture2D)Studio.loadedAssetsList.Find(x => x.m_PathID == fullTexAlphaID)?.Asset;
                     FacePos = new Point((int)Math.Round(spriteHubData.FacePos.X), (int)Math.Round(spriteHubData.FacePos.Y));
                     FaceSize = new Size((int)Math.Round(spriteHubData.FaceSize.X), (int)Math.Round(spriteHubData.FaceSize.Y));
                     IsFaceSprite = assetItem.m_PathID != fullTexSpriteID;
