@@ -93,17 +93,19 @@ namespace Arknights
                 Alias = curSpriteData.Alias;
                 IsWholeBodySprite = curSpriteData.IsWholeBody;
 
-                if (spriteHubData.FaceSize.X > 0 && spriteHubData.FaceSize.Y > 0)
+                if (spriteHubData.FaceSize.X > 0 && spriteHubData.FaceSize.Y > 0)  //If face data exist
                 {
                     var fullTexSpriteData = spriteHubData.Sprites.Last(); //Last sprite item in the list usually contains PathID of Sprite with full texture
-                    if (IsWholeBodySprite || curSpriteData.Equals(fullTexSpriteData))
+
+                    var curSprite = (Sprite)assetItem.Asset;
+                    IsFaceSprite = curSprite.m_Rect.width <= 256 && curSprite.m_Rect.height <= 256 && curSprite.m_PathID != fullTexSpriteData.Sprite.m_PathID;
+
+                    var curSpriteAlphaID = curSpriteData.AlphaTex.m_PathID;
+                    var curSpriteAlphaTex = (Texture2D)Studio.loadedAssetsList.Find(x => x.m_PathID == curSpriteAlphaID)?.Asset;
+                    if (curSpriteAlphaTex != null)
                     {
-                        fullTexSpriteData = curSpriteData;
-                    }
-                    else
-                    {
-                        var faceAlphaID = curSpriteData.AlphaTex.m_PathID;
-                        FaceSpriteAlphaTexture = (Texture2D)Studio.loadedAssetsList.Find(x => x.m_PathID == faceAlphaID)?.Asset;
+                        FaceSpriteAlphaTexture = IsFaceSprite ? curSpriteAlphaTex : null;
+                        fullTexSpriteData = IsFaceSprite ? fullTexSpriteData : curSpriteData;
                     }
                     var fullTexSpriteID = fullTexSpriteData.Sprite.m_PathID;
                     var fullTexAlphaID = fullTexSpriteData.AlphaTex.m_PathID;
@@ -113,7 +115,6 @@ namespace Arknights
                     FullAlphaTexture = (Texture2D)Studio.loadedAssetsList.Find(x => x.m_PathID == fullTexAlphaID)?.Asset;
                     FacePos = new Point((int)Math.Round(spriteHubData.FacePos.X), (int)Math.Round(spriteHubData.FacePos.Y));
                     FaceSize = new Size((int)Math.Round(spriteHubData.FaceSize.X), (int)Math.Round(spriteHubData.FaceSize.Y));
-                    IsFaceSprite = assetItem.m_PathID != fullTexSpriteID;
                 }
                 else
                 {
