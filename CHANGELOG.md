@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.1.0 (based on v0.17.4) [16-12-2023]
+- Added support for avg sprite without separate alpha tex
+- Changed avg face sprite detection method, since we can't rely on the "IsWholeBody" flag
+
 ## v1.0.0 (based on v0.17.3) [24-09-2023]
 - Base version changed to AssetStudioMod v0.17.x
 - Replaced NetVips lib with ImageSharp lib
