@@ -57,14 +57,14 @@ namespace Arknights
                     {
                         var faceImage = m_Texture2D.ConvertToImage(true);
                         var faceAlpha = avgSprite.FaceSpriteAlphaTexture.ConvertToImage(true);
-                        if (faceImage.Size() != avgSprite.FaceSize)
+                        if (new Size(faceImage.Width, faceImage.Height) != avgSprite.FaceSize)
                         {
                             faceImage.Mutate(x => x.Resize(new ResizeOptions { Size = avgSprite.FaceSize, Sampler = KnownResamplers.Lanczos3, Mode = ResizeMode.Stretch }));
                             faceAlpha.Mutate(x => x.Resize(new ResizeOptions { Size = avgSprite.FaceSize, Sampler = KnownResamplers.Lanczos3, Mode = ResizeMode.Stretch }));
                         }
                         tex = avgSprite.FullTexture.ConvertToImage(true);
-                        tex.Mutate(x => x.DrawImage(faceImage, location: avgSprite.FacePos, opacity: 1f));
-                        alphaTex.Mutate(x => x.DrawImage(faceAlpha, location: avgSprite.FacePos, opacity: 1f));
+                        tex.Mutate(x => x.DrawImage(faceImage, avgSprite.FacePos, opacity: 1f));
+                        alphaTex.Mutate(x => x.DrawImage(faceAlpha, avgSprite.FacePos, opacity: 1f));
                     }
                     else
                     {
@@ -91,11 +91,11 @@ namespace Arknights
 
                 var faceImage = m_Texture2D.ConvertToImage(true);
                 var tex = avgSprite.FullTexture.ConvertToImage(true);
-                if (faceImage.Size() != avgSprite.FaceSize)
+                if (new Size(faceImage.Width, faceImage.Height) != avgSprite.FaceSize)
                 {
                     faceImage.Mutate(x => x.Resize(new ResizeOptions {Size = avgSprite.FaceSize, Sampler = KnownResamplers.Lanczos3, Mode = ResizeMode.Stretch}));
                 }
-                tex.Mutate(x => x.DrawImage(faceImage, location: avgSprite.FacePos, opacity: 1f));
+                tex.Mutate(x => x.DrawImage(faceImage, avgSprite.FacePos, opacity: 1f));
 
                 return tex;
             }
@@ -264,7 +264,7 @@ namespace Arknights
             {
                 if (downscaleMultiplier > 0f && downscaleMultiplier != 1f)
                 {
-                    var newSize = (Size)(originalImage.Size() / downscaleMultiplier);
+                    var newSize = (Size)(new Size(originalImage.Width, originalImage.Height) / downscaleMultiplier);
                     originalImage.Mutate(x => x.Resize(newSize, KnownResamplers.Lanczos3, compand: true));
                 }
                 var rectX = (int)Math.Floor(textureRect.x);

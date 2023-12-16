@@ -18,7 +18,7 @@ namespace CubismLive2DExtractor
 {
     public static class Live2DExtractor
     {
-        public static void ExtractLive2D(IGrouping<string, AssetStudio.Object> assets, string destPath, string modelName, AssemblyLoader assemblyLoader)
+        public static void ExtractLive2D(IGrouping<string, AssetStudio.Object> assets, string destPath, string modelName, AssemblyLoader assemblyLoader, Live2DMotionMode motionMode, bool forceBezier = false)
         {            
             var destTexturePath = Path.Combine(destPath, "textures") + Path.DirectorySeparatorChar;
             var destMotionPath = Path.Combine(destPath, "motions") + Path.DirectorySeparatorChar;
@@ -26,20 +26,75 @@ namespace CubismLive2DExtractor
             Directory.CreateDirectory(destPath);
             Directory.CreateDirectory(destTexturePath);
 
-            var monoBehaviours = new List<MonoBehaviour>();
-            var texture2Ds = new List<Texture2D>();
+            var expressionList = new List<MonoBehaviour>();
+            var fadeMotionList = new List<MonoBehaviour>();
             var gameObjects = new List<GameObject>();
             var animationClips = new List<AnimationClip>();
+
+            var textures = new SortedSet<string>();
+            var eyeBlinkParameters = new HashSet<string>();
+            var lipSyncParameters = new HashSet<string>();
+            var parameterNames = new HashSet<string>();
+            var partNames = new HashSet<string>();
+            MonoBehaviour physics = null;
 
             foreach (var asset in assets)
             {
                 switch (asset)
                 {
                     case MonoBehaviour m_MonoBehaviour:
-                        monoBehaviours.Add(m_MonoBehaviour);
+                        if (m_MonoBehaviour.m_Script.TryGet(out var m_Script))
+                        {
+                            switch (m_Script.m_ClassName)
+                            {
+                                case "CubismMoc":
+                                    File.WriteAllBytes($"{destPath}{modelName}.moc3", ParseMoc(m_MonoBehaviour)); //moc
+                                    break;
+                                case "CubismPhysicsController":
+                                    physics = physics ?? m_MonoBehaviour;
+                                    break;
+                                case "CubismExpressionData":
+                                    expressionList.Add(m_MonoBehaviour);
+                                    break;
+                                case "CubismFadeMotionData":
+                                    fadeMotionList.Add(m_MonoBehaviour);
+                                    break;
+                                case "CubismEyeBlinkParameter":
+                                    if (m_MonoBehaviour.m_GameObject.TryGet(out var blinkGameObject))
+                                    {
+                                        eyeBlinkParameters.Add(blinkGameObject.m_Name);
+                                    }
+                                    break;
+                                case "CubismMouthParameter":
+                                    if (m_MonoBehaviour.m_GameObject.TryGet(out var mouthGameObject))
+                                    {
+                                        lipSyncParameters.Add(mouthGameObject.m_Name);
+                                    }
+                                    break;
+                                case "CubismParameter":
+                                    if (m_MonoBehaviour.m_GameObject.TryGet(out var paramGameObject))
+                                    {
+                                        parameterNames.Add(paramGameObject.m_Name);
+                                    }
+                                    break;
+                                case "CubismPart":
+                                    if (m_MonoBehaviour.m_GameObject.TryGet(out var partGameObject))
+                                    {
+                                        partNames.Add(partGameObject.m_Name);
+                                    }
+                                    break;
+                            }
+                        }
                         break;
                     case Texture2D m_Texture2D:
-                        texture2Ds.Add(m_Texture2D);
+                        using (var image = m_Texture2D.ConvertToImage(flip: true))
+                        {
+                            using (var file = File.OpenWrite($"{destTexturePath}{m_Texture2D.m_Name}.png"))
+                            {
+                                image.WriteToStream(file, ImageFormat.Png);
+                            }
+                            textures.Add($"textures/{m_Texture2D.m_Name}.png"); //texture
+                        }
                         break;
                     case GameObject m_GameObject:
                         gameObjects.Add(m_GameObject);
@@ -50,15 +105,12 @@ namespace CubismLive2DExtractor
                 }
             }
 
-            //physics
-            var physics = monoBehaviours.FirstOrDefault(x =>
+            if (textures.Count == 0)
             {
-                if (x.m_Script.TryGet(out var m_Script))
-                {
-                    return m_Script.m_ClassName == "CubismPhysicsController";
-                }
-                return false;
-            });
+                Logger.Warning($"No textures found for \"{modelName}\" model.");
+            }
+
+            //physics
             if (physics != null)
             {
                 try
@@ -73,36 +125,51 @@ namespace CubismLive2DExtractor
                 }
             }
 
-            //moc
-            var moc = monoBehaviours.First(x =>
-            {
-                if (x.m_Script.TryGet(out var m_Script))
-                {
-                    return m_Script.m_ClassName == "CubismMoc";
-                }
-                return false;
-            });
-            File.WriteAllBytes($"{destPath}{modelName}.moc3", ParseMoc(moc));
-
-            //texture
-            var textures = new SortedSet<string>();
-            foreach (var texture2D in texture2Ds)
-            {
-                using (var image = texture2D.ConvertToImage(flip: true))
-                {
-                    textures.Add($"textures/{texture2D.m_Name}.png");
-                    using (var file = File.OpenWrite($"{destTexturePath}{texture2D.m_Name}.png"))
-                    {
-                        image.WriteToStream(file, ImageFormat.Png);
-                    }
-                }
-            }
-
             //motion
             var motions = new SortedDictionary<string, JArray>();
 
-            if (gameObjects.Count > 0)
+            if (motionMode == Live2DMotionMode.MonoBehaviour && fadeMotionList.Count > 0)  //motion from MonoBehaviour
             {
+                Logger.Debug("Motion export method: MonoBehaviour (Fade motion)");
+                Directory.CreateDirectory(destMotionPath);
+                foreach (var fadeMotionMono in fadeMotionList)
+                {
+                    var fadeMotionObj = fadeMotionMono.ToType();
+                    if (fadeMotionObj == null)
+                    {
+                        var m_Type = fadeMotionMono.ConvertToTypeTree(assemblyLoader);
+                        fadeMotionObj = fadeMotionMono.ToType(m_Type);
+                        if (fadeMotionObj == null)
+                        {
+                            Logger.Warning($"Fade motion \"{fadeMotionMono.m_Name}\" is not readable.");
+                            continue;
+                        }
+                    }
+                    var fadeMotion = JsonConvert.DeserializeObject<CubismFadeMotion>(JsonConvert.SerializeObject(fadeMotionObj));
+                    if (fadeMotion.ParameterIds.Length == 0)
+                        continue;
+
+                    var motionJson = new CubismMotion3Json(fadeMotion, parameterNames, partNames, forceBezier);
+
+                    var animName = Path.GetFileNameWithoutExtension(fadeMotion.m_Name);
+                    if (motions.ContainsKey(animName))
+                    {
+                        animName = $"{animName}_{fadeMotion.GetHashCode()}";
+
+                        if (motions.ContainsKey(animName))
+                            continue;
+                    }
+                    var motionPath = new JObject(new JProperty("File", $"motions/{animName}.motion3.json"));
+                    motions.Add(animName, new JArray(motionPath));
+                    File.WriteAllText($"{destMotionPath}{animName}.motion3.json", JsonConvert.SerializeObject(motionJson, Formatting.Indented, new MyJsonConverter()));
+                }
+            }
+            else if (gameObjects.Count > 0)  //motion from AnimationClip
+            {
+                var exportMethod = motionMode == Live2DMotionMode.AnimationClip
+                    ? "AnimationClip"
+                    : "AnimationClip (no Fade motions found)";
+                Logger.Debug($"Motion export method: {exportMethod}");
                 var rootTransform = gameObjects[0].m_Transform;
                 while (rootTransform.m_Father.TryGet(out var m_Father))
                 {
@@ -114,114 +181,37 @@ namespace CubismLive2DExtractor
                 {
                     Directory.CreateDirectory(destMotionPath);
                 }
-                foreach (ImportedKeyframedAnimation animation in converter.AnimationList)
+                foreach (var animation in converter.AnimationList)
                 {
-                    var json = new CubismMotion3Json
-                    {
-                        Version = 3,
-                        Meta = new CubismMotion3Json.SerializableMeta
-                        {
-                            Duration = animation.Duration,
-                            Fps = animation.SampleRate,
-                            Loop = true,
-                            AreBeziersRestricted = true,
-                            CurveCount = animation.TrackList.Count,
-                            UserDataCount = animation.Events.Count
-                        },
-                        Curves = new CubismMotion3Json.SerializableCurve[animation.TrackList.Count]
-                    };
-                    int totalSegmentCount = 1;
-                    int totalPointCount = 1;
-                    for (int i = 0; i < animation.TrackList.Count; i++)
-                    {
-                        var track = animation.TrackList[i];
-                        json.Curves[i] = new CubismMotion3Json.SerializableCurve
-                        {
-                            Target = track.Target,
-                            Id = track.Name,
-                            Segments = new List<float> { 0f, track.Curve[0].value }
-                        };
-                        for (var j = 1; j < track.Curve.Count; j++)
-                        {
-                            var curve = track.Curve[j];
-                            var preCurve = track.Curve[j - 1];
-                            if (Math.Abs(curve.time - preCurve.time - 0.01f) < 0.0001f) //InverseSteppedSegment
-                            {
-                                var nextCurve = track.Curve[j + 1];
-                                if (nextCurve.value == curve.value)
-                                {
-                                    json.Curves[i].Segments.Add(3f);
-                                    json.Curves[i].Segments.Add(nextCurve.time);
-                                    json.Curves[i].Segments.Add(nextCurve.value);
-                                    j += 1;
-                                    totalPointCount += 1;
-                                    totalSegmentCount++;
-                                    continue;
-                                }
-                            }
-                            if (float.IsPositiveInfinity(curve.inSlope)) //SteppedSegment
-                            {
-                                json.Curves[i].Segments.Add(2f);
-                                json.Curves[i].Segments.Add(curve.time);
-                                json.Curves[i].Segments.Add(curve.value);
-                                totalPointCount += 1;
-                            }
-                            else if (preCurve.outSlope == 0f && Math.Abs(curve.inSlope) < 0.0001f) //LinearSegment
-                            {
-                                json.Curves[i].Segments.Add(0f);
-                                json.Curves[i].Segments.Add(curve.time);
-                                json.Curves[i].Segments.Add(curve.value);
-                                totalPointCount += 1;
-                            }
-                            else //BezierSegment
-                            {
-                                var tangentLength = (curve.time - preCurve.time) / 3f;
-                                json.Curves[i].Segments.Add(1f);
-                                json.Curves[i].Segments.Add(preCurve.time + tangentLength);
-                                json.Curves[i].Segments.Add(preCurve.outSlope * tangentLength + preCurve.value);
-                                json.Curves[i].Segments.Add(curve.time - tangentLength);
-                                json.Curves[i].Segments.Add(curve.value - curve.inSlope * tangentLength);
-                                json.Curves[i].Segments.Add(curve.time);
-                                json.Curves[i].Segments.Add(curve.value);
-                                totalPointCount += 3;
-                            }
-                            totalSegmentCount++;
-                        }
-                    }
-                    json.Meta.TotalSegmentCount = totalSegmentCount;
-                    json.Meta.TotalPointCount = totalPointCount;
+                    var motionJson = new CubismMotion3Json(animation, forceBezier);
 
-                    json.UserData = new CubismMotion3Json.SerializableUserData[animation.Events.Count];
-                    var totalUserDataSize = 0;
-                    for (var i = 0; i < animation.Events.Count; i++)
+                    var animName = animation.Name;
+                    if (motions.ContainsKey(animName))
                     {
-                        var @event = animation.Events[i];
-                        json.UserData[i] = new CubismMotion3Json.SerializableUserData
-                        {
-                            Time = @event.time,
-                            Value = @event.value
-                        };
-                        totalUserDataSize += @event.value.Length;
+                        animName = $"{animName}_{animation.GetHashCode()}";
+                        
+                        if (motions.ContainsKey(animName))
+                            continue;
                     }
-                    json.Meta.TotalUserDataSize = totalUserDataSize;
-
-                    var motionPath = new JObject(new JProperty("File", $"motions/{animation.Name}.motion3.json"));
-                    motions.Add(animation.Name, new JArray(motionPath));
-                    File.WriteAllText($"{destMotionPath}{animation.Name}.motion3.json", JsonConvert.SerializeObject(json, Formatting.Indented, new MyJsonConverter()));
+                    var motionPath = new JObject(new JProperty("File", $"motions/{animName}.motion3.json"));
+                    motions.Add(animName, new JArray(motionPath));
+                    File.WriteAllText($"{destMotionPath}{animName}.motion3.json", JsonConvert.SerializeObject(motionJson, Formatting.Indented, new MyJsonConverter()));
                 }
+            }
+            if (motions.Count == 0)
+            {
+                Logger.Warning($"No motions found for \"{modelName}\" model.");
             }
 
             //expression
             var expressions = new JArray();
-            var monoBehaviourArray = monoBehaviours.Where(x => x.m_Name.EndsWith(".exp3")).ToArray();
-            if (monoBehaviourArray.Length > 0)
+            if (expressionList.Count > 0)
             {
                 Directory.CreateDirectory(destExpressionPath);
             }
-            foreach (var monoBehaviour in monoBehaviourArray)
+            foreach (var monoBehaviour in expressionList)
             {
-                var fullName = monoBehaviour.m_Name;
-                var expressionName = fullName.Replace(".exp3", "");
+                var expressionName = monoBehaviour.m_Name.Replace(".exp3", "");
                 var expressionObj = monoBehaviour.ToType();
                 if (expressionObj == null)
                 {
@@ -238,57 +228,38 @@ namespace CubismLive2DExtractor
                 expressions.Add(new JObject
                     {
                         { "Name", expressionName },
-                        { "File", $"expressions/{fullName}.json" }
+                        { "File", $"expressions/{expressionName}.exp3.json" }
                     });
-                File.WriteAllText($"{destExpressionPath}{fullName}.json", JsonConvert.SerializeObject(expression, Formatting.Indented));
+                File.WriteAllText($"{destExpressionPath}{expressionName}.exp3.json", JsonConvert.SerializeObject(expression, Formatting.Indented));
             }
 
-            //model
+            //group
             var groups = new List<CubismModel3Json.SerializableGroup>();
 
-            var eyeBlinkParameters = monoBehaviours.Where(x =>
-            {
-                x.m_Script.TryGet(out var m_Script);
-                return m_Script?.m_ClassName == "CubismEyeBlinkParameter";
-            }).Select(x =>
-            {
-                x.m_GameObject.TryGet(out var m_GameObject);
-                return m_GameObject?.m_Name;
-            }).ToHashSet();
+            //Try looking for group IDs among the gameObjects
             if (eyeBlinkParameters.Count == 0)
             {
                 eyeBlinkParameters = gameObjects.Where(x =>
-                {
-                    return x.m_Name.ToLower().Contains("eye")
+                    x.m_Name.ToLower().Contains("eye")
                     && x.m_Name.ToLower().Contains("open")
-                    && (x.m_Name.ToLower().Contains('l') || x.m_Name.ToLower().Contains('r'));
-                }).Select(x => x.m_Name).ToHashSet();
+                    && (x.m_Name.ToLower().Contains('l') || x.m_Name.ToLower().Contains('r'))
+                ).Select(x => x.m_Name).ToHashSet();
             }
+            if (lipSyncParameters.Count == 0)
+            {
+                lipSyncParameters = gameObjects.Where(x =>
+                    x.m_Name.ToLower().Contains("mouth")
+                    && x.m_Name.ToLower().Contains("open")
+                    && x.m_Name.ToLower().Contains('y')
+                ).Select(x => x.m_Name).ToHashSet();
+            }
+
             groups.Add(new CubismModel3Json.SerializableGroup
             {
                 Target = "Parameter",
                 Name = "EyeBlink",
                 Ids = eyeBlinkParameters.ToArray()
             });
-
-            var lipSyncParameters = monoBehaviours.Where(x =>
-            {
-                x.m_Script.TryGet(out var m_Script);
-                return m_Script?.m_ClassName == "CubismMouthParameter";
-            }).Select(x =>
-            {
-                x.m_GameObject.TryGet(out var m_GameObject);
-                return m_GameObject?.m_Name;
-            }).ToHashSet();
-            if (lipSyncParameters.Count == 0)
-            {
-                lipSyncParameters = gameObjects.Where(x =>
-                {
-                    return x.m_Name.ToLower().Contains("mouth")
-                    && x.m_Name.ToLower().Contains("open")
-                    && x.m_Name.ToLower().Contains('y');
-                }).Select(x => x.m_Name).ToHashSet();
-            }
             groups.Add(new CubismModel3Json.SerializableGroup
             {
                 Target = "Parameter",
@@ -296,6 +267,7 @@ namespace CubismLive2DExtractor
                 Ids = lipSyncParameters.ToArray()
             });
 
+            //model
             var model3 = new CubismModel3Json
             {
                 Version = 3,

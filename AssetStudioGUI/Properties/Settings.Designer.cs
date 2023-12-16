@@ -12,7 +12,7 @@ namespace AssetStudioGUI.Properties {
     
     
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.Editors.SettingsDesigner.SettingsSingleFileGenerator", "17.5.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.Editors.SettingsDesigner.SettingsSingleFileGenerator", "17.8.0.0")]
     internal sealed partial class Settings : global::System.Configuration.ApplicationSettingsBase {
         
         private static Settings defaultInstance = ((Settings)(global::System.Configuration.ApplicationSettingsBase.Synchronized(new Settings())));
@@ -356,6 +356,66 @@ namespace AssetStudioGUI.Properties {
             }
             set {
                 this["alphaMaskGamma"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("MonoBehaviour")]
+        public global::CubismLive2DExtractor.Live2DMotionMode l2dMotionMode {
+            get {
+                return ((global::CubismLive2DExtractor.Live2DMotionMode)(this["l2dMotionMode"]));
+            }
+            set {
+                this["l2dMotionMode"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool l2dForceBezier {
+            get {
+                return ((bool)(this["l2dForceBezier"]));
+            }
+            set {
+                this["l2dForceBezier"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool showConsole {
+            get {
+                return ((bool)(this["showConsole"]));
+            }
+            set {
+                this["showConsole"] = value;
+            }
+        }
+
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool useFileLogger {
+            get {
+                return ((bool)(this["useFileLogger"]));
+            }
+            set {
+                this["useFileLogger"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool buildTreeStructure {
+            get {
+                return ((bool)(this["buildTreeStructure"]));
+            }
+            set {
+                this["buildTreeStructure"] = value;
             }
         }
     }

@@ -14,6 +14,7 @@ namespace AssetStudioCLI.Options
         General,
         Convert,
         Logger,
+        Live2D,
         FBX,
         Filter,
         Arknights,
@@ -93,6 +94,9 @@ namespace AssetStudioCLI.Options
         public static bool convertTexture;
         public static Option<ImageFormat> o_imageFormat;
         public static Option<AudioFormat> o_audioFormat;
+        //live2d
+        public static Option<CubismLive2DExtractor.Live2DMotionMode> o_l2dMotionMode;
+        public static Option<bool> f_l2dForceBezier;
         //fbx
         public static Option<float> o_fbxScaleFactor;
         public static Option<int> o_fbxBoneSize;
@@ -222,7 +226,7 @@ namespace AssetStudioCLI.Options
                 optionDefaultValue: "ASExport",
                 optionName: "-o, --output <path>",
                 optionDescription: "Specify path to the output folder\n" +
-                    "If path isn't specifyed, 'ASExport' folder will be created in the program's work folder\n",
+                    "If path isn't specified, 'ASExport' folder will be created in the program's work folder\n",
                 optionHelpGroup: HelpGroups.General
             );
             o_displayHelp = new GroupedOption<bool>
@@ -276,6 +280,30 @@ namespace AssetStudioCLI.Options
                     "None - Do not convert audios and export them in their own format\n" +
                     "Example: \"--audio-format wav\"",
                 optionHelpGroup: HelpGroups.Convert
+            );
+            #endregion
+
+            #region Init Cubism Live2D Options
+            o_l2dMotionMode = new GroupedOption<CubismLive2DExtractor.Live2DMotionMode>
+            (
+                optionDefaultValue: CubismLive2DExtractor.Live2DMotionMode.MonoBehaviour,
+                optionName: "--l2d-motion-mode <value>",
+                optionDescription: "Specify Live2D motion export mode\n" +
+                    "<Value: monoBehaviour(default) | animationClip>\n" +
+                    "MonoBehaviour - Try to export motions from MonoBehaviour Fade motions\n" +
+                    "If no Fade motions are found, the AnimationClip method will be used\n" +
+                    "AnimationClip - Try to export motions using AnimationClip assets\n" +
+                    "Example: \"--l2d-motion-mode animationClip\"\n",
+                optionHelpGroup: HelpGroups.Live2D
+            );
+            f_l2dForceBezier = new GroupedOption<bool>
+            (
+                optionDefaultValue: false,
+                optionName: "--l2d-force-bezier",
+                optionDescription: "(Flag) If specified, Linear motion segments will be calculated as Bezier segments\n" +
+                    "(May help if the exported motions look jerky/not smooth enough)",
+                optionHelpGroup: HelpGroups.Live2D,
+                isFlag: true
             );
             #endregion
 
@@ -340,7 +368,7 @@ namespace AssetStudioCLI.Options
             );
             #endregion
             
-            #region Arknights Options
+            #region Init Arknights Options
             akResizedOnly = true;
             o_akSpriteAlphaMode = new GroupedOption<AkSpriteAlphaMode>
             (
@@ -385,7 +413,7 @@ namespace AssetStudioCLI.Options
             (
                 optionDefaultValue: false,
                 optionName: "--original-avg-names",
-                optionDescription: "(Flag) If specified, names of avg character sprites will not be fixed\n",
+                optionDescription: "(Flag) If specified, names of avg character sprites will not be restored\n",
                 optionHelpGroup: HelpGroups.Arknights,
                 isFlag: true
             );
@@ -447,8 +475,8 @@ namespace AssetStudioCLI.Options
         {
             cliArgs = args;
 
-            var brightYellow = CLIAnsiColors.BrightYellow;
-            var brightRed = CLIAnsiColors.BrightRed;
+            var brightYellow = ColorConsole.BrightYellow;
+            var brightRed = ColorConsole.BrightRed;
 
             if (args.Length == 0 || args.Any(x => x.ToLower() == "-h" || x.ToLower() == "--help" || x.ToLower() == "-?"))
             {
@@ -489,6 +517,7 @@ namespace AssetStudioCLI.Options
                 }    
             };
 
+            #region Parse "Working Mode" Option
             var workModeOptionIndex = resplittedArgs.FindIndex(x => x.ToLower() == "-m" || x.ToLower() == "--mode");
             if (workModeOptionIndex >= 0)
             {
@@ -515,6 +544,7 @@ namespace AssetStudioCLI.Options
                     case "info":
                         o_workMode.Value = WorkMode.Info;
                         break;
+                    case "l2d":
                     case "live2d":
                         o_workMode.Value = WorkMode.ExportLive2D;
                         o_exportAssetTypes.Value = new List<ClassIDType>()
@@ -546,6 +576,7 @@ namespace AssetStudioCLI.Options
                 }
                 resplittedArgs.RemoveRange(workModeOptionIndex, 2);
             }
+            #endregion
 
             #region Parse Flags
             for (int i = 0; i < resplittedArgs.Count; i++) 
@@ -579,6 +610,16 @@ namespace AssetStudioCLI.Options
                         break;
                     case "--add-aliases":
                         f_akAddAliases.Value = true;
+                        resplittedArgs.RemoveAt(i);
+                        break;
+                    case "--l2d-force-bezier":
+                        if (o_workMode.Value != WorkMode.ExportLive2D)
+                        {
+                            Console.WriteLine($"{"Error".Color(brightRed)} during parsing [{flag}] flag. This flag is not suitable for the current working mode [{o_workMode.Value}].\n");
+                            ShowOptionDescription(o_workMode.Description);
+                            return;
+                        }
+                        f_l2dForceBezier.Value = true;
                         resplittedArgs.RemoveAt(i);
                         break;
                 }
@@ -782,6 +823,28 @@ namespace AssetStudioCLI.Options
                                     return;
                             }
                             break;
+                        case "--l2d-motion-mode":
+                            if (o_workMode.Value != WorkMode.ExportLive2D)
+                            {
+                                Console.WriteLine($"{"Error".Color(brightRed)} during parsing [{option}] option. This option is not suitable for the current working mode [{o_workMode.Value}].\n");
+                                ShowOptionDescription(o_workMode.Description);
+                                return;
+                            }
+                            switch (value.ToLower())
+                            {
+                                case "fade":
+                                case "monobehaviour":
+                                    o_l2dMotionMode.Value = CubismLive2DExtractor.Live2DMotionMode.MonoBehaviour;
+                                    break;
+                                case "animationclip":
+                                    o_l2dMotionMode.Value = CubismLive2DExtractor.Live2DMotionMode.AnimationClip;
+                                    break;
+                                default:
+                                    Console.WriteLine($"{"Error".Color(brightRed)} during parsing [{option}] option. Unsupported Live2D motion mode: [{value.Color(brightRed)}].\n");
+                                    ShowOptionDescription(o_l2dMotionMode.Description);
+                                    return;
+                            }
+                            break;
                         case "--fbx-scale-factor":
                             {
                                 var isFloat = float.TryParse(value, out float floatValue);
@@ -949,7 +1012,7 @@ namespace AssetStudioCLI.Options
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine("Unknown Error.".Color(CLIAnsiColors.Red));
+                    Console.WriteLine("Unknown Error.".Color(ColorConsole.Red));
                     Console.WriteLine(ex);
                     return;
                 }
@@ -986,13 +1049,13 @@ namespace AssetStudioCLI.Options
 
         private static bool TryFindOptionDescription(string option, Dictionary<string, string> dict, bool isFlag = false)
         {
-            var optionDesc = dict.Where(x => x.Key.Contains(option));
+            var optionDesc = dict.Where(x => x.Key.Contains(option)).ToArray();
             if (optionDesc.Any())
             {
                 var arg = isFlag ? "flag" : "option";
                 var rand = new Random();
-                var rndOption = optionDesc.ElementAt(rand.Next(0, optionDesc.Count()));
-                Console.WriteLine($"Did you mean [{ $"{rndOption.Key}".Color(CLIAnsiColors.BrightYellow) }] {arg}?");
+                var rndOption = optionDesc.ElementAt(rand.Next(0, optionDesc.Length));
+                Console.WriteLine($"Did you mean [{$"{rndOption.Key}".Color(ColorConsole.BrightYellow)}] {arg}?");
                 Console.WriteLine($"Here's a description of it: \n\n{rndOption.Value}");
 
                 return true;
@@ -1034,7 +1097,7 @@ namespace AssetStudioCLI.Options
             else
             {
                 var arch = Environment.Is64BitProcess ? "x64" : "x32";
-                Console.WriteLine($"# {appAssembly.Name} [{arch}]\n# v{appAssembly.Version}\n# Based on AssetStudioMod v0.17.3\n");
+                Console.WriteLine($"# {appAssembly.Name} [{arch}]\n# v{appAssembly.Version}\n# Based on AssetStudioMod v0.17.4\n");
                 Console.WriteLine($"{usage}\n\n{helpMessage}");
             }
         }
@@ -1105,7 +1168,7 @@ namespace AssetStudioCLI.Options
                     sb.AppendLine($"# Log Output: {o_logOutput}");
                     sb.AppendLine($"# Export Asset List: {o_exportAssetList}");
                     sb.AppendLine(ShowCurrentFilter());
-                    sb.AppendLine($"# Assebmly Path: \"{o_assemblyPath}\"");
+                    sb.AppendLine($"# Assembly Path: \"{o_assemblyPath}\"");
                     sb.AppendLine($"# Unity Version: \"{o_unityVersion}\"");
                     if (o_workMode.Value == WorkMode.Export)
                     {
@@ -1134,7 +1197,9 @@ namespace AssetStudioCLI.Options
                     }
                     else
                     {
-                        sb.AppendLine($"# Assebmly Path: \"{o_assemblyPath}\"");
+                        sb.AppendLine($"# Live2D Motion Export Method: {o_l2dMotionMode}");
+                        sb.AppendLine($"# Force Bezier: {f_l2dForceBezier }");
+                        sb.AppendLine($"# Assembly Path: \"{o_assemblyPath}\"");
                     }
                     sb.AppendLine($"# Unity Version: \"{o_unityVersion}\"");
                     break;

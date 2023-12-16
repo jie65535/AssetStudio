@@ -42,6 +42,7 @@ namespace AssetStudio
                 filteredAssetTypesList.UnionWith(new HashSet<ClassIDType>
                 {
                     ClassIDType.Texture2D,
+                    ClassIDType.SpriteAtlas,
                     ClassIDType.MonoBehaviour,
                     ClassIDType.MonoScript
                 });
@@ -87,7 +88,7 @@ namespace AssetStudio
                     MergeSplitAssets(fullPath, true);
                     fileList.AddRange(Directory.GetFiles(fullPath, "*.*", SearchOption.AllDirectories));
                 }
-                else
+                else if (File.Exists(fullPath))
                 {
                     parentPath = Path.GetDirectoryName(fullPath);
                     fileList.Add(fullPath);
@@ -138,7 +139,7 @@ namespace AssetStudio
 
         private void LoadFile(FileReader reader)
         {
-            switch (reader.FileType)
+            switch (reader?.FileType)
             {
                 case FileType.AssetsFile:
                     LoadAssetsFile(reader);
@@ -537,6 +538,9 @@ namespace AssetStudio
                             case ClassIDType.PlayerSettings:
                                 obj = new PlayerSettings(objectReader);
                                 break;
+                            case ClassIDType.PreloadData:
+                                obj = new PreloadData(objectReader);
+                                break;
                             case ClassIDType.RectTransform:
                                 obj = new RectTransform(objectReader);
                                 break;
@@ -640,13 +644,16 @@ namespace AssetStudio
                                 {
                                     m_Sprite.m_SpriteAtlas.Set(m_SpriteAtlas);
                                 }
-                                else
+                                else if (m_Sprite.m_SpriteAtlas.TryGet(out var m_SpriteAtlaOld))
                                 {
-                                    m_Sprite.m_SpriteAtlas.TryGet(out var m_SpriteAtlaOld);
                                     if (m_SpriteAtlaOld.m_IsVariant)
                                     {
                                         m_Sprite.m_SpriteAtlas.Set(m_SpriteAtlas);
                                     }
+                                }
+                                else
+                                {
+                                    Logger.Warning($"\"{m_Sprite.m_Name}\": Sprite loading error. SpriteAtlas with PathID: \"{m_Sprite.m_SpriteAtlas.m_PathID}\" was not found.");
                                 }
                             }
                         }

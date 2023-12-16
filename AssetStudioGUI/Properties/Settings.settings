@@ -86,5 +86,20 @@
     <Setting Name="alphaMaskGamma" Type="System.Int32" Scope="User">
       <Value Profile="(Default)">2</Value>
     </Setting>
+    <Setting Name="l2dMotionMode" Type="CubismLive2DExtractor.Live2DMotionMode" Scope="User">
+      <Value Profile="(Default)">MonoBehaviour</Value>
+    </Setting>
+    <Setting Name="l2dForceBezier" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
+    <Setting Name="showConsole" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">True</Value>
+    </Setting>
+    <Setting Name="useFileLogger" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
+    <Setting Name="buildTreeStructure" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">True</Value>
+    </Setting>
   </Settings>
 </SettingsFile>

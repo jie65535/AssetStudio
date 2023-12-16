@@ -158,10 +158,13 @@ namespace AssetStudioGUI
             var objectCount = assetsManager.assetsFileList.Sum(x => x.Objects.Count);
             var objectAssetItemDic = new Dictionary<Object, AssetItem>(objectCount);
             var containers = new List<(PPtr<Object>, string)>();
-            int i = 0;
+            allContainers.Clear();
+            var i = 0;
             Progress.Reset();
             foreach (var assetsFile in assetsManager.assetsFileList)
             {
+                var preloadTable = Array.Empty<PPtr<Object>>();
+
                 foreach (var asset in assetsFile.Objects)
                 {
                     var assetItem = new AssetItem(asset);
@@ -170,6 +173,9 @@ namespace AssetStudioGUI
                     var exportable = false;
                     switch (asset)
                     {
+                        case PreloadData m_PreloadData:
+                            preloadTable = m_PreloadData.m_Assets;
+                            break;
                         case GameObject m_GameObject:
                             assetItem.Text = m_GameObject.m_Name;
                             break;
@@ -187,7 +193,7 @@ namespace AssetStudioGUI
                             break;
                         case VideoClip m_VideoClip:
                             if (!string.IsNullOrEmpty(m_VideoClip.m_OriginalPath))
-                                assetItem.FullSize = asset.byteSize + (long)m_VideoClip.m_ExternalResources.m_Size;
+                                assetItem.FullSize = asset.byteSize + m_VideoClip.m_ExternalResources.m_Size;
                             assetItem.Text = m_VideoClip.m_Name;
                             exportable = true;
                             break;
@@ -226,17 +232,23 @@ namespace AssetStudioGUI
                             productName = m_PlayerSettings.productName;
                             break;
                         case AssetBundle m_AssetBundle:
+                            var isStreamedSceneAssetBundle = m_AssetBundle.m_IsStreamedSceneAssetBundle;
+                            if (!isStreamedSceneAssetBundle)
+                            {
+                                preloadTable = m_AssetBundle.m_PreloadTable;
+                            }
+                            assetItem.Text = string.IsNullOrEmpty(m_AssetBundle.m_AssetBundleName) ? m_AssetBundle.m_Name : m_AssetBundle.m_AssetBundleName;
+
                             foreach (var m_Container in m_AssetBundle.m_Container)
                             {
                                 var preloadIndex = m_Container.Value.preloadIndex;
-                                var preloadSize = m_Container.Value.preloadSize;
+                                var preloadSize = isStreamedSceneAssetBundle ? preloadTable.Length : m_Container.Value.preloadSize;
                                 var preloadEnd = preloadIndex + preloadSize;
-                                for (int k = preloadIndex; k < preloadEnd; k++)
+                                for (var k = preloadIndex; k < preloadEnd; k++)
                                 {
-                                    containers.Add((m_AssetBundle.m_PreloadTable[k], m_Container.Key));
+                                    containers.Add((preloadTable[k], m_Container.Key));
                                 }
                             }
-                            assetItem.Text = m_AssetBundle.m_Name;
                             break;
                         case ResourceManager m_ResourceManager:
                             foreach (var m_Container in m_ResourceManager.m_Container)
@@ -259,7 +271,7 @@ namespace AssetStudioGUI
                     Progress.Report(++i, objectCount);
                 }
             }
-            foreach ((var pptr, var container) in containers)
+            foreach (var (pptr, container) in containers)
             {
                 if (pptr.TryGet(out var obj))
                 {
@@ -285,12 +297,19 @@ namespace AssetStudioGUI
 
             visibleAssets = exportableAssets;
 
+            if (!Properties.Settings.Default.buildTreeStructure)
+            {
+                Logger.Info("Building tree structure step is skipped");
+                objectAssetItemDic.Clear();
+                return (productName, new List<TreeNode>());
+            }
+
             Logger.Info("Building tree structure...");
 
             var treeNodeCollection = new List<TreeNode>();
             var treeNodeDictionary = new Dictionary<GameObject, GameObjectTreeNode>();
             var assetsFileCount = assetsManager.assetsFileList.Count;
-            int j = 0;
+            var j = 0;
             Progress.Reset();
             foreach (var assetsFile in assetsManager.assetsFileList)
             {
@@ -358,7 +377,6 @@ namespace AssetStudioGUI
                 Progress.Report(++j, assetsFileCount);
             }
             treeNodeDictionary.Clear();
-
             objectAssetItemDic.Clear();
 
             return (productName, treeNodeCollection);
@@ -396,7 +414,6 @@ namespace AssetStudioGUI
                     typeMap.Add(assetsFile.unityVersion, items);
                 }
             }
-
             return typeMap;
         }
 
@@ -755,6 +772,8 @@ namespace AssetStudioGUI
         public static void ExportLive2D(Object[] cubismMocs, string exportPath)
         {
             var baseDestPath = Path.Combine(exportPath, "Live2DOutput");
+            var motionMode = Properties.Settings.Default.l2dMotionMode;
+            var forceBezier = Properties.Settings.Default.l2dForceBezier;
 
             ThreadPool.QueueUserWorkItem(state =>
             {
@@ -763,48 +782,73 @@ namespace AssetStudioGUI
                 var useFullContainerPath = false;
                 if (cubismMocs.Length > 1)
                 {
-                    var basePathSet = cubismMocs.Select(x => allContainers[x].Substring(0, allContainers[x].LastIndexOf("/"))).ToHashSet();
+                    var basePathSet = cubismMocs.Select(x =>
+                    {
+                        var pathLen = allContainers.TryGetValue(x, out var itemContainer) ? itemContainer.LastIndexOf("/") : 0;
+                        pathLen = pathLen < 0 ? allContainers[x].Length : pathLen;
+                        return itemContainer?.Substring(0, pathLen);
+                    }).ToHashSet();
+
+                    if (basePathSet.All(x => x == null))
+                    {
+                        Logger.Error($"Live2D Cubism export error\r\nCannot find any model related files");
+                        StatusStripUpdate("Live2D export canceled");
+                        Progress.Reset();
+                        return;
+                    }
 
                     if (basePathSet.Count != cubismMocs.Length)
                     {
                         useFullContainerPath = true;
                     }
                 }
-                var basePathList = useFullContainerPath ?
-                    cubismMocs.Select(x => allContainers[x]).ToList() :
-                    cubismMocs.Select(x => allContainers[x].Substring(0, allContainers[x].LastIndexOf("/"))).ToList();
+
+                var basePathList = cubismMocs.Select(x =>
+                {
+                    allContainers.TryGetValue(x, out var container);
+                    container = useFullContainerPath
+                        ? container
+                        : container?.Substring(0, container.LastIndexOf("/"));
+                    return container;
+                }).Where(x => x != null).ToList();
+
                 var lookup = allContainers.ToLookup(
                     x => basePathList.Find(b => x.Value.Contains(b) && x.Value.Split('/').Any(y => y == b.Substring(b.LastIndexOf("/") + 1))),
                     x => x.Key
                 );
 
                 var totalModelCount = lookup.LongCount(x => x.Key != null);
-                var name = "";
                 var modelCounter = 0;
                 foreach (var assets in lookup)
                 {
-                    var container = assets.Key;
-                    if (container == null)
+                    var srcContainer = assets.Key;
+                    if (srcContainer == null)
                         continue;
-                    name = container;
+                    var container = srcContainer;
 
-                    Logger.Info($"[{modelCounter + 1}/{totalModelCount}] Exporting Live2D: \"{container}\"...");
+                    Logger.Info($"[{modelCounter + 1}/{totalModelCount}] Exporting Live2D: \"{srcContainer}\"...");
                     try
                     {
                         var modelName = useFullContainerPath ? Path.GetFileNameWithoutExtension(container) : container.Substring(container.LastIndexOf('/') + 1);
                         container = Path.HasExtension(container) ? container.Replace(Path.GetExtension(container), "") : container;
                         var destPath = Path.Combine(baseDestPath, container) + Path.DirectorySeparatorChar;
 
-                        ExtractLive2D(assets, destPath, modelName, assemblyLoader);
+                        ExtractLive2D(assets, destPath, modelName, assemblyLoader, motionMode, forceBezier);
                         modelCounter++;
                     }
                     catch (Exception ex)
                     {
-                        Logger.Error($"Live2D model export error: \"{name}\"", ex);
+                        Logger.Error($"Live2D model export error: \"{srcContainer}\"", ex);
                     }
                     Progress.Report(modelCounter, (int)totalModelCount);
                 }
+
                 Logger.Info($"Finished exporting [{modelCounter}/{totalModelCount}] Live2D model(s).");
+                if (modelCounter < totalModelCount)
+                {
+                    var total = (int)totalModelCount;
+                    Progress.Report(total, total);
+                }
                 if (Properties.Settings.Default.openAfterExport && modelCounter > 0)
                 {
                     OpenFolderInExplorer(exportPath);

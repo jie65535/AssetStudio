@@ -116,23 +116,34 @@ namespace AssetStudioGUI
         [DllImport("gdi32.dll")]
         private static extern IntPtr AddFontMemResourceEx(IntPtr pbFont, uint cbFont, IntPtr pdv, [In] ref uint pcFonts);
 
+        private string guiTitle = string.Empty;
+
         public AssetStudioGUIForm()
         {
             Thread.CurrentThread.CurrentCulture = new CultureInfo("en-US");
+            ConsoleWindow.RunConsole(Properties.Settings.Default.showConsole);
             InitializeComponent();
-            Text = $"{Application.ProductName} v{Application.ProductVersion}";
+
+            var appAssembly = typeof(Program).Assembly.GetName();
+            guiTitle = $"{appAssembly.Name} v{appAssembly.Version}";
+            Text = guiTitle;
+
             delayTimer = new System.Timers.Timer(800);
-            delayTimer.Elapsed += new ElapsedEventHandler(delayTimer_Elapsed);
+            delayTimer.Elapsed += delayTimer_Elapsed;
             displayAll.Checked = Properties.Settings.Default.displayAll;
             displayInfo.Checked = Properties.Settings.Default.displayInfo;
             enablePreview.Checked = Properties.Settings.Default.enablePreview;
             akFixFaceSpriteNamesToolStripMenuItem.Checked = Properties.Settings.Default.fixFaceSpriteNames;
             akUseExternalAlphaToolStripMenuItem.Checked = Properties.Settings.Default.useExternalAlpha;
+            showConsoleToolStripMenuItem.Checked = Properties.Settings.Default.showConsole;
+            buildTreeStructureToolStripMenuItem.Checked = Properties.Settings.Default.buildTreeStructure;
             FMODinit();
             listSearchFilterMode.SelectedIndex = 0;
 
             logger = new GUILogger(StatusStripUpdate);
             Logger.Default = logger;
+            writeLogToFileToolStripMenuItem.Checked = Properties.Settings.Default.useFileLogger;
+
             Progress.Default = new Progress<int>(SetProgressBarValue);
             Studio.StatusStripUpdate = StatusStripUpdate;
         }
@@ -141,21 +152,32 @@ namespace AssetStudioGUI
         {
             if (e.Data.GetDataPresent(DataFormats.FileDrop))
             {
-                e.Effect = DragDropEffects.Move;
+                e.Effect = DragDropEffects.Copy;
             }
         }
 
         private async void AssetStudioGUIForm_DragDrop(object sender, DragEventArgs e)
         {
             var paths = (string[])e.Data.GetData(DataFormats.FileDrop);
-            if (paths.Length > 0)
+            if (paths.Length == 0)
+                return;
+
+            ResetForm();
+            for (var i = 0; i < paths.Length; i++)
             {
-                ResetForm();
-                assetsManager.SpecifyUnityVersion = specifyUnityVersion.Text;
-                await Task.Run(() => assetsManager.LoadFilesAndFolders(out openDirectoryBackup, paths));
-                saveDirectoryBackup = openDirectoryBackup;
-                BuildAssetStructures();
+                if (paths[i].ToLower().EndsWith(".lnk"))
+                {
+                    var targetPath = LnkReader.GetLnkTarget(paths[i]);
+                    if (!string.IsNullOrEmpty(targetPath))
+                    {
+                        paths[i] = targetPath;
+                    }
+                }
             }
+            assetsManager.SpecifyUnityVersion = specifyUnityVersion.Text;
+            await Task.Run(() => assetsManager.LoadFilesAndFolders(out openDirectoryBackup, paths));
+            saveDirectoryBackup = openDirectoryBackup;
+            BuildAssetStructures();
         }
 
         private async void loadFile_Click(object sender, EventArgs e)
@@ -224,17 +246,11 @@ namespace AssetStudioGUI
                 return;
             }
 
-            (var productName, var treeNodeCollection) = await Task.Run(() => BuildAssetData());
+            var (productName, treeNodeCollection) = await Task.Run(() => BuildAssetData());
             var typeMap = await Task.Run(() => BuildClassStructure());
+            productName = string.IsNullOrEmpty(productName) ? "no productName" : productName;
 
-            if (!string.IsNullOrEmpty(productName))
-            {
-                Text = $"{Application.ProductName} v{Application.ProductVersion} - {productName} - {assetsManager.assetsFileList[0].unityVersion} - {assetsManager.assetsFileList[0].m_TargetPlatform}";
-            }
-            else
-            {
-                Text = $"{Application.ProductName} v{Application.ProductVersion} - no productName - {assetsManager.assetsFileList[0].unityVersion} - {assetsManager.assetsFileList[0].m_TargetPlatform}";
-            }
+            Text = $"{guiTitle} - {productName} - {assetsManager.assetsFileList[0].unityVersion} - {assetsManager.assetsFileList[0].m_TargetPlatform}";
 
             assetListView.VirtualListSize = visibleAssets.Count;
 
@@ -1423,7 +1439,7 @@ namespace AssetStudioGUI
 
         private void ResetForm()
         {
-            Text = $"{Application.ProductName} v{Application.ProductVersion}";
+            Text = guiTitle;
             assetsManager.Clear();
             assemblyLoader.Clear();
             exportableAssets.Clear();
@@ -2125,6 +2141,38 @@ namespace AssetStudioGUI
                 assetItem.Click += selectRelatedAsset;
                 showRelatedAssetsToolStripMenuItem.DropDownItems.Add(assetItem);
             }
+        }
+
+        private void showConsoleToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            var showConsole = showConsoleToolStripMenuItem.Checked;
+            if (showConsole)
+                ConsoleWindow.ShowConsoleWindow();
+            else
+                ConsoleWindow.HideConsoleWindow();
+
+            Properties.Settings.Default.showConsole = showConsole;
+            Properties.Settings.Default.Save();
+        }
+
+        private void writeLogToFileToolStripMenuItem_CheckedChanged(object sender, EventArgs e)
+        {
+            var useFileLogger = writeLogToFileToolStripMenuItem.Checked;
+            logger.UseFileLogger = useFileLogger;
+
+            Properties.Settings.Default.useFileLogger = useFileLogger;
+            Properties.Settings.Default.Save();
+        }
+
+        private void AssetStudioGUIForm_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            Logger.Verbose("Closing AssetStudio");
+        }
+
+        private void buildTreeStructureToolStripMenuItem_CheckedChanged(object sender, EventArgs e)
+        {
+            Properties.Settings.Default.buildTreeStructure = buildTreeStructureToolStripMenuItem.Checked;
+            Properties.Settings.Default.Save();
         }
 
         #region FMOD

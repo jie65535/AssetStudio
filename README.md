@@ -25,6 +25,9 @@
 - ArknightsStudio-net7
    - GUI/CLI (Windows) - [.NET Desktop Runtime 7.0](https://dotnet.microsoft.com/download/dotnet/7.0)
    - CLI (Linux/Mac) - [.NET Runtime 7.0](https://dotnet.microsoft.com/download/dotnet/7.0)
+- ArknightsStudio-net8
+   - GUI/CLI (Windows) - [.NET Desktop Runtime 7.0](https://dotnet.microsoft.com/download/dotnet/8.0)
+   - CLI (Linux/Mac) - [.NET Runtime 7.0](https://dotnet.microsoft.com/download/dotnet/8.0)
 
 ## CLI Usage
 

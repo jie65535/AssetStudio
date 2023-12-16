@@ -46,6 +46,7 @@
             this.akFixFaceSpriteNamesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.akUseExternalAlphaToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.akSeparator2 = new System.Windows.Forms.ToolStripSeparator();
+            this.buildTreeStructureToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripMenuItem14 = new System.Windows.Forms.ToolStripMenuItem();
             this.specifyUnityVersion = new System.Windows.Forms.ToolStripTextBox();
             this.showExpOpt = new System.Windows.Forms.ToolStripMenuItem();
@@ -82,6 +83,8 @@
             this.allToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.debugMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripMenuItem15 = new System.Windows.Forms.ToolStripMenuItem();
+            this.showConsoleToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.writeLogToFileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.exportClassStructuresMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.aboutToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
@@ -241,6 +244,7 @@
             this.akFixFaceSpriteNamesToolStripMenuItem,
             this.akUseExternalAlphaToolStripMenuItem,
             this.akSeparator2,
+            this.buildTreeStructureToolStripMenuItem,
             this.toolStripMenuItem14,
             this.showExpOpt});
             this.optionsToolStripMenuItem.Name = "optionsToolStripMenuItem";
@@ -251,7 +255,7 @@
             // 
             this.displayAll.CheckOnClick = true;
             this.displayAll.Name = "displayAll";
-            this.displayAll.Size = new System.Drawing.Size(252, 22);
+            this.displayAll.Size = new System.Drawing.Size(276, 22);
             this.displayAll.Text = "Display all assets";
             this.displayAll.ToolTipText = "Check this option will display all types assets. Not extractable assets can expor" +
     "t the RAW file.";
@@ -263,7 +267,7 @@
             this.enablePreview.CheckOnClick = true;
             this.enablePreview.CheckState = System.Windows.Forms.CheckState.Checked;
             this.enablePreview.Name = "enablePreview";
-            this.enablePreview.Size = new System.Drawing.Size(252, 22);
+            this.enablePreview.Size = new System.Drawing.Size(276, 22);
             this.enablePreview.Text = "Enable preview";
             this.enablePreview.ToolTipText = "Toggle the loading and preview of readable assets, such as images, sounds, text, " +
     "etc.\r\nDisable preview if you have performance or compatibility issues.";
@@ -275,7 +279,7 @@
             this.displayInfo.CheckOnClick = true;
             this.displayInfo.CheckState = System.Windows.Forms.CheckState.Checked;
             this.displayInfo.Name = "displayInfo";
-            this.displayInfo.Size = new System.Drawing.Size(252, 22);
+            this.displayInfo.Size = new System.Drawing.Size(276, 22);
             this.displayInfo.Text = "Display asset information";
             this.displayInfo.ToolTipText = "Toggle the overlay that shows information about each asset, eg. image size, forma" +
     "t, audio bitrate, etc.";
@@ -284,7 +288,7 @@
             // akSeparator1
             // 
             this.akSeparator1.Name = "akSeparator1";
-            this.akSeparator1.Size = new System.Drawing.Size(249, 6);
+            this.akSeparator1.Size = new System.Drawing.Size(273, 6);
             // 
             // akTitleMenuItem
             // 
@@ -292,7 +296,7 @@
             this.akTitleMenuItem.Enabled = false;
             this.akTitleMenuItem.Name = "akTitleMenuItem";
             this.akTitleMenuItem.ShowShortcutKeys = false;
-            this.akTitleMenuItem.Size = new System.Drawing.Size(252, 22);
+            this.akTitleMenuItem.Size = new System.Drawing.Size(276, 22);
             this.akTitleMenuItem.Text = "Arknights";
             // 
             // akFixFaceSpriteNamesToolStripMenuItem
@@ -301,8 +305,8 @@
             this.akFixFaceSpriteNamesToolStripMenuItem.CheckOnClick = true;
             this.akFixFaceSpriteNamesToolStripMenuItem.CheckState = System.Windows.Forms.CheckState.Checked;
             this.akFixFaceSpriteNamesToolStripMenuItem.Name = "akFixFaceSpriteNamesToolStripMenuItem";
-            this.akFixFaceSpriteNamesToolStripMenuItem.Size = new System.Drawing.Size(252, 22);
-            this.akFixFaceSpriteNamesToolStripMenuItem.Text = "Fix names of avg character sprites";
+            this.akFixFaceSpriteNamesToolStripMenuItem.Size = new System.Drawing.Size(276, 22);
+            this.akFixFaceSpriteNamesToolStripMenuItem.Text = "Restore names of avg character sprites";
             this.akFixFaceSpriteNamesToolStripMenuItem.ToolTipText = "Rename face sprites with numeric names to correct ones";
             this.akFixFaceSpriteNamesToolStripMenuItem.CheckedChanged += new System.EventHandler(this.akFixFaceSpriteNamesToolStripMenuItem_Check);
             // 
@@ -312,7 +316,7 @@
             this.akUseExternalAlphaToolStripMenuItem.CheckOnClick = true;
             this.akUseExternalAlphaToolStripMenuItem.CheckState = System.Windows.Forms.CheckState.Checked;
             this.akUseExternalAlphaToolStripMenuItem.Name = "akUseExternalAlphaToolStripMenuItem";
-            this.akUseExternalAlphaToolStripMenuItem.Size = new System.Drawing.Size(265, 22);
+            this.akUseExternalAlphaToolStripMenuItem.Size = new System.Drawing.Size(276, 22);
             this.akUseExternalAlphaToolStripMenuItem.Text = "Use external alpha texture for sprites";
             this.akUseExternalAlphaToolStripMenuItem.ToolTipText = "Trying to find an external alpha texture for preview/export sprite assets (Skins," +
     " Char arts, Avg char arts, etc.)";
@@ -321,14 +325,25 @@
             // akSeparator2
             // 
             this.akSeparator2.Name = "akSeparator2";
-            this.akSeparator2.Size = new System.Drawing.Size(249, 6);
+            this.akSeparator2.Size = new System.Drawing.Size(273, 6);
+            // 
+            // buildTreeStructureToolStripMenuItem
+            // 
+            this.buildTreeStructureToolStripMenuItem.Checked = true;
+            this.buildTreeStructureToolStripMenuItem.CheckOnClick = true;
+            this.buildTreeStructureToolStripMenuItem.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.buildTreeStructureToolStripMenuItem.Name = "buildTreeStructureToolStripMenuItem";
+            this.buildTreeStructureToolStripMenuItem.Size = new System.Drawing.Size(276, 22);
+            this.buildTreeStructureToolStripMenuItem.Text = "Build tree structure";
+            this.buildTreeStructureToolStripMenuItem.ToolTipText = "You can disable tree structure building if you don\'t use the Scene Hierarchy tab";
+            this.buildTreeStructureToolStripMenuItem.CheckedChanged += new System.EventHandler(this.buildTreeStructureToolStripMenuItem_CheckedChanged);
             // 
             // toolStripMenuItem14
             // 
             this.toolStripMenuItem14.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.specifyUnityVersion});
             this.toolStripMenuItem14.Name = "toolStripMenuItem14";
-            this.toolStripMenuItem14.Size = new System.Drawing.Size(252, 22);
+            this.toolStripMenuItem14.Size = new System.Drawing.Size(276, 22);
             this.toolStripMenuItem14.Text = "Specify Unity version";
             // 
             // specifyUnityVersion
@@ -342,7 +357,7 @@
             // showExpOpt
             // 
             this.showExpOpt.Name = "showExpOpt";
-            this.showExpOpt.Size = new System.Drawing.Size(252, 22);
+            this.showExpOpt.Size = new System.Drawing.Size(276, 22);
             this.showExpOpt.Text = "Export options";
             this.showExpOpt.Click += new System.EventHandler(this.showExpOpt_Click);
             // 
@@ -588,6 +603,8 @@
             // 
             this.debugMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.toolStripMenuItem15,
+            this.showConsoleToolStripMenuItem,
+            this.writeLogToFileToolStripMenuItem,
             this.exportClassStructuresMenuItem});
             this.debugMenuItem.Name = "debugMenuItem";
             this.debugMenuItem.Size = new System.Drawing.Size(54, 20);
@@ -600,6 +617,24 @@
             this.toolStripMenuItem15.Size = new System.Drawing.Size(200, 22);
             this.toolStripMenuItem15.Text = "Show all error messages";
             this.toolStripMenuItem15.Click += new System.EventHandler(this.toolStripMenuItem15_Click);
+            // 
+            // showConsoleToolStripMenuItem
+            // 
+            this.showConsoleToolStripMenuItem.Checked = true;
+            this.showConsoleToolStripMenuItem.CheckOnClick = true;
+            this.showConsoleToolStripMenuItem.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.showConsoleToolStripMenuItem.Name = "showConsoleToolStripMenuItem";
+            this.showConsoleToolStripMenuItem.Size = new System.Drawing.Size(200, 22);
+            this.showConsoleToolStripMenuItem.Text = "Show console logger";
+            this.showConsoleToolStripMenuItem.Click += new System.EventHandler(this.showConsoleToolStripMenuItem_Click);
+            // 
+            // writeLogToFileToolStripMenuItem
+            // 
+            this.writeLogToFileToolStripMenuItem.CheckOnClick = true;
+            this.writeLogToFileToolStripMenuItem.Name = "writeLogToFileToolStripMenuItem";
+            this.writeLogToFileToolStripMenuItem.Size = new System.Drawing.Size(200, 22);
+            this.writeLogToFileToolStripMenuItem.Text = "Write log to file";
+            this.writeLogToFileToolStripMenuItem.CheckedChanged += new System.EventHandler(this.writeLogToFileToolStripMenuItem_CheckedChanged);
             // 
             // exportClassStructuresMenuItem
             // 
@@ -1308,6 +1343,7 @@
             this.Name = "AssetStudioGUIForm";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "AssetStudioModGUI";
+            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.AssetStudioGUIForm_FormClosing);
             this.DragDrop += new System.Windows.Forms.DragEventHandler(this.AssetStudioGUIForm_DragDrop);
             this.DragEnter += new System.Windows.Forms.DragEventHandler(this.AssetStudioGUIForm_DragEnter);
             this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.AssetStudioForm_KeyDown);
@@ -1462,6 +1498,9 @@
         private System.Windows.Forms.ToolStripSeparator akSeparator1;
         private System.Windows.Forms.ToolStripMenuItem akTitleMenuItem;
         private System.Windows.Forms.ToolStripSeparator akSeparator2;
+        private System.Windows.Forms.ToolStripMenuItem showConsoleToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem writeLogToFileToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem buildTreeStructureToolStripMenuItem;
     }
 }
 
