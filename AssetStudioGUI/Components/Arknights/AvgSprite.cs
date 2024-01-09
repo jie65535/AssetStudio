@@ -118,7 +118,7 @@ namespace Arknights
                 }
                 else
                 {
-                    FullAlphaTexture = (Texture2D)Studio.exportableAssets.Find(x => x.m_PathID == curSpriteData.AlphaTex.m_PathID).Asset;
+                    FullAlphaTexture = (Texture2D)Studio.exportableAssets.Find(x => x.m_PathID == curSpriteData.AlphaTex.m_PathID)?.Asset;
                 }
             }
         }
