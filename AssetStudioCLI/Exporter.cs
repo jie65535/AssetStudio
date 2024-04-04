@@ -350,22 +350,23 @@ namespace AssetStudioCLI
                     break;
             }
             fullPath = Path.Combine(dir, fileName + extension);
-            if (!File.Exists(fullPath))
-            {
-                Directory.CreateDirectory(dir);
-                return true;
-            }
-            if (filenameFormat == FilenameFormat.AssetName)
-            {
-                fullPath = Path.Combine(dir, fileName + item.UniqueID + extension);
-                if (!File.Exists(fullPath))
-                {
-                    Directory.CreateDirectory(dir);
-                    return true;
-                }
-            }
-            Logger.Error($"Export error. File \"{fullPath.Color(ColorConsole.BrightRed)}\" already exist");
-            return false;
+            return true; // 如果文件已经存在，直接覆盖
+            // if (!File.Exists(fullPath))
+            // {
+            //     Directory.CreateDirectory(dir);
+            //     return true;
+            // }
+            // if (filenameFormat == FilenameFormat.AssetName)
+            // {
+            //     fullPath = Path.Combine(dir, fileName + item.UniqueID + extension);
+            //     if (!File.Exists(fullPath))
+            //     {
+            //         Directory.CreateDirectory(dir);
+            //         return true;
+            //     }
+            // }
+            // Logger.Error($"Export error. File \"{fullPath.Color(ColorConsole.BrightRed)}\" already exist");
+            // return false;
         }
 
         private static bool ExportMesh(AssetItem item, string exportPath)
