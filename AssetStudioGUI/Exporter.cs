@@ -299,12 +299,9 @@ namespace AssetStudioGUI
                     break;
             }
             fullPath = Path.Combine(dir, fileName + extension);
+            if (!File.Exists(fullPath))
+                Directory.CreateDirectory(dir);
             return true; // 如果文件已经存在，直接覆盖
-            // if (!File.Exists(fullPath))
-            // {
-            //     Directory.CreateDirectory(dir);
-            //     return true;
-            // }
             // if (filenameFormatIndex == 0) //assetName
             // {
             //     fullPath = Path.Combine(dir, fileName + item.UniqueID + extension);
